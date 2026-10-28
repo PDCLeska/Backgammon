@@ -63,22 +63,22 @@
     <h1>Backgammon Board</h1>
     <div class="sub">Rebuilds automatically when <code>cad/*.py</code> is saved.</div>
 
-    <h2>Fold</h2>
-    <div class="slider"><span>Fold</span><input id="fold" type="range" min="0" max="180" step="1" value="0"><output id="foldV"></output></div>
-    <div class="row" style="margin-top:6px">
+    <h2 class="foldui">Fold</h2>
+    <div class="slider foldui"><span>Fold</span><input id="fold" type="range" min="0" max="180" step="1" value="0"><output id="foldV"></output></div>
+    <div class="row foldui" style="margin-top:6px">
       <button id="play" class="primary">▶ Open / close</button><button id="open">Open</button><button id="closed">Closed</button>
     </div>
-    <label class="chk" style="margin-top:6px"><input id="chk" type="checkbox" checked> Checkers + dice (starting position; hidden while folding)</label>
+    <label class="chk foldui" style="margin-top:6px"><input id="chk" type="checkbox" checked> Checkers + dice (starting position; hidden while folding)</label>
 
     <h2>View</h2>
     <div class="row">
       <button data-view="iso">Iso</button><button data-view="player">Player</button>
       <button data-view="top">Top</button><button data-view="side">Side</button><button data-view="hinge">Hinge</button><button data-view="back">Back</button>
     </div>
-    <label class="chk" style="margin-top:8px"><input id="bed" type="checkbox"> Carvera Air work area (300 × 200) under the left half</label>
+    <label class="chk" style="margin-top:8px"><input id="bed" type="checkbox"> Carvera Air work area (300 × 200)<span class="foldui"> under the left half</span></label>
     <label class="chk"><input id="edges" type="checkbox" checked> Edge lines</label>
     <label class="chk"><input id="backmap" type="checkbox" checked> Back engraving (sea-floor map)</label>
-    <label class="chk"><input id="metal" type="checkbox"> <b style="color:#d14343">Metal in red</b> (hinges, magnets)</label>
+    <label class="chk foldui"><input id="metal" type="checkbox"> <b style="color:#d14343">Metal in red</b> (hinges, magnets)</label>
     <label class="chk"><input id="clip" type="checkbox"> Section cut</label>
     <div class="row"><select id="clipAxis"><option value="x">X (from the left)</option><option value="y">Y (from the front)</option><option value="z">Z (from the top)</option></select>
       <button id="clipFlip">Flip</button></div>
@@ -99,7 +99,7 @@
     <div class="sub"><kbd>Space</kbd> open/close · <kbd>R</kbd> rebuild · double-click = start view</div>
   </aside>
   <main id="view">
-    <div id="hud">Fold <b id="hF">0</b>°<br><span class="sub" id="hS">open</span></div>
+    <div id="hud"><span class="foldui">Fold <b id="hF">0</b>°<br></span><span class="sub" id="hS">open</span></div>
     <div id="status"><span class="dot" id="sdot"></span><span id="stext">connecting…</span>
       <button id="rebuild" style="margin-left:8px">Rebuild</button><div id="err"></div></div>
   </main>
@@ -110,6 +110,8 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
 const $ = (id) => document.getElementById(id);
+const MODEL = new URLSearchParams(location.search).get("model") || "board";   // ?model=coaster
+const DATA = MODEL === "board" ? "data" : "data_" + MODEL;
 const view = $("view");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -155,7 +157,7 @@ function setView(v) {
 function buildBed() {
   bed.clear();
   if (!model) return;
-  const k = model.kin, w = k.cy, l = k.cx, cx = -k.W / 2;        // a half lies with its long side along the bed's X
+  const k = model.kin, w = k.cy, l = k.cx, cx = k.bedx ?? -k.W / 2;        // a half lies with its long side along the bed's X
   const shape = new THREE.BufferGeometry().setFromPoints([[-w / 2, -l / 2], [w / 2, -l / 2], [w / 2, l / 2], [-w / 2, l / 2], [-w / 2, -l / 2]]
     .map(([x, y]) => new THREE.Vector3(cx + x, y, 0.3)));
   bed.add(new THREE.Line(shape, new THREE.LineBasicMaterial({ color: 0xd14343 })));
@@ -166,11 +168,11 @@ function buildBed() {
 let loading = null;
 async function loadModel(ver) {
   loading = ver;
-  const m = await (await fetch(`data/model.json?v=${ver}`)).json();
+  const m = await (await fetch(`${DATA}/model.json?v=${ver}`)).json();
   const loader = new STLLoader();
   const next = {};
   await Promise.all(Object.entries(m.parts).map(async ([name, info]) => {
-    const buf = await (await fetch(`data/${name}.stl?v=${ver}`)).arrayBuffer();
+    const buf = await (await fetch(`${DATA}/${name}.stl?v=${ver}`)).arrayBuffer();
     const geo = loader.parse(buf); geo.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({ color: info.color, metalness: info.metal ? 0.5 : 0.05,
       roughness: info.metal ? 0.35 : 0.6, side: THREE.DoubleSide, clippingPlanes: [] });
@@ -183,7 +185,9 @@ async function loadModel(ver) {
   if (loading !== ver) { Object.values(next).forEach((o) => o.mesh.geometry.dispose()); return; }
   Object.values(meshes).forEach((o) => { scene.remove(o.mesh); o.mesh.geometry.dispose(); });
   meshes = next; model = m;
-  for (const s of ["R", "L"]) {                     // engraved lines on the back of each half (ride with its fold)
+  if (m.title) { document.querySelector("aside h1").textContent = m.title; document.title = m.title; }
+  for (const el of document.querySelectorAll(".foldui")) el.style.display = m.kin.fold === false ? "none" : "";
+  for (const s of Object.keys(m.back || {})) {      // engraved / lasered lines on each back (ride with its fold)
     const t = meshes["tray_" + s]; if (!t || !m.back) continue;
     const pts = [];
     for (const run of m.back[s]) for (let i = 1; i < run.length; i++) pts.push(run[i - 1][0], run[i - 1][1], -0.2, run[i][0], run[i][1], -0.2);
@@ -242,7 +246,7 @@ function update() {
     o.mesh.matrix.copy(o.info.side === "R" ? R : new THREE.Matrix4()); o.mesh.matrixWorldNeedsUpdate = true;
   }
   $("fold").value = fold; $("foldV").textContent = fold.toFixed(0) + "°"; $("hF").textContent = fold.toFixed(0);
-  $("hS").textContent = fold < 1 ? "open: " + (2 * model.kin.W).toFixed(0) + " × " + model.kin.L.toFixed(0) + " mm"
+  $("hS").textContent = model.kin.fold === false ? model.kin.W.toFixed(1) + " × " + model.kin.L.toFixed(1) + " × " + T.toFixed(0) + " mm" : fold < 1 ? "open: " + (2 * model.kin.W).toFixed(0) + " × " + model.kin.L.toFixed(0) + " mm"
     : fold > 179 ? "closed: " + model.kin.W.toFixed(0) + " × " + model.kin.L.toFixed(0) + " × " + (2 * T).toFixed(0) + " mm" : "folding";
   applyToggles();
 }
@@ -250,21 +254,21 @@ function update() {
 function renderChecks(c) {
   const st = $("collState");
   if (c.state === "running") { st.innerHTML = "Running the checks…"; return; }
-  st.innerHTML = c.ok ? '<span style="color:var(--ok)">All clear: fits the Carvera, nothing collides open, folding or closed</span>'
+  st.innerHTML = c.ok ? '<span style="color:var(--ok)">' + (model && model.kin.fold === false ? "All clear (see details)" : "All clear: fits the Carvera, nothing collides open, folding or closed") + '</span>'
                       : '<span class="hit">Problems: see details</span>';
   $("coll").textContent = (c.lines || []).join("\n");
 }
 
 async function poll() {
   try {
-    const s = await (await fetch("data/status.json?t=" + Date.now())).json();
+    const s = await (await fetch(`${DATA}/status.json?t=` + Date.now())).json();
     const dot = $("sdot"), txt = $("stext"), err = $("err");
     if (s.state === "building") { dot.style.background = "var(--warn)"; txt.textContent = "Rebuilding model…"; }
     else if (s.state === "error") { dot.style.background = "var(--bad)"; txt.textContent = "Build failed; showing the last good model";
       err.style.display = "block"; err.textContent = s.error; }
     else { dot.style.background = "var(--ok)"; txt.textContent = `Up to date (${new Date(+s.version).toLocaleTimeString()})`; err.style.display = "none"; }
     if (s.state === "ok" && s.version !== version) { version = s.version; await loadModel(version); }
-    const c = await (await fetch("data/collisions.json?t=" + Date.now())).json();
+    const c = await (await fetch(`${DATA}/collisions.json?t=` + Date.now())).json();
     if (c.version === version) renderChecks(c);
   } catch (e) { $("sdot").style.background = "var(--bad)"; $("stext").textContent = "Server not reachable: run review/serve.py"; }
   setTimeout(poll, 1500);
@@ -292,7 +296,7 @@ $("clipFlip").onclick = (e) => { e.target.dataset.on = e.target.dataset.on === "
 $("allOn").onclick = () => { hidden.clear(); buildPartsPanel(); applyToggles(); };
 $("woodOnly").onclick = () => { hidden.clear();
   Object.entries(meshes).forEach(([n, o]) => (o.info.metal || o.info.checker) && hidden.add(n)); buildPartsPanel(); applyToggles(); };
-$("rebuild").onclick = () => fetch("/rebuild?model=board", { method: "POST" });
+$("rebuild").onclick = () => fetch("/rebuild?model=" + MODEL, { method: "POST" });
 window.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT" && e.target.type !== "range") return;
   if (e.code === "Space") { e.preventDefault(); $("play").click(); }

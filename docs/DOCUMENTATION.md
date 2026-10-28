@@ -14,9 +14,11 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Back | **Sea-floor contour map** engraved across both backs (Amir's photo): Saronic Gulf to Syros, coast + every 100 m, 1:442,000, from GMRT data (`art/topo.py`). No route (Amir). |
 | Viewer | `review/serve.py --port=8771` -> http://localhost:8771/review/ (fold slider, Carvera bed outline, back view + map, checks). |
 | Cut files | `make.py export` -> `export/`: halves, checker (STEP / STL); `bg_points_left/right.dxf` (point, rim line and diamond outlines, a layer per colour); `bg_back_left/right.dxf` (the map, per half). No toolpaths yet. |
-| Tools | Ordered from Makera (2.5). |
+| Tools | Ordered from Makera (2.5), + the laser module (Amir has it). |
+| **Coaster** | **First: the practice piece** (Amir), every board technique on cheap-to-lose wood (section 3). `cad/coaster.py check export`; viewer http://localhost:8771/review/?model=coaster. |
 
 ### Next steps
+0. **The coaster first** (section 3): learn the settings there, then the board.
 1. When the tools come: measure the 90 deg chamfering bit (cutting diameter -> `VBIT_D`; the model assumes 6, so 3 mm deep).
 2. Check Makera CAM can V-carve the point outlines (sharp tips, flat bottom cleared); if not, F-Engrave or VCarve.
 3. **Test cut + pour in pine / MDF, then in walnut offcut**: two points of each colour, a piece of rim line, a corner.
@@ -123,3 +125,38 @@ collet, 90 deg chamfering bit (6 mm shank) x 2 (the points' V-bit: the set's sma
 blanks), 2 mm MDF spoil boards, double-sided tape. Later: dust extraction (Cyclone Lite or a shop vac).
 Elsewhere: walnut; pine / MDF for tests; epoxy (coating / tabletop, UV-stable) + turquoise and deep blue pigment
 (mica powder), mixing cups, sticks, a heat gun or torch, shellac (sealer); painter's tape + CA glue (holding); sandpaper 120-400; Danish oil or wax; 2 small brass hinges + magnets; dice and cups.
+
+---
+
+## 3. Coffee coaster: the practice piece (Amir, 2026-10-28)
+
+Before the walnut board: one coaster made with every technique of the board, so the settings, the pours and the
+flip are learned on a piece that costs little to lose. Make it in pine / poplar first if you like, then walnut.
+
+- 110.5 x 110.5 x 12 (blank 12.5 thick, about 125 x 125 with extra wood for the clamps), corners r8, top edges
+  chamfered 1.5. A field 82.5 square, 3 deep (a mug's base sits in it; it holds a drip).
+- Top, the board's own features at the board's sizes: 6 points (26 wide, the board's width; 32 long), 3 a side,
+  colours alternating and opposite across; a turquoise diamond in the middle; the turquoise rim line all round,
+  3 mm off the field wall. Same V-bit, depths, seal, pours, facing (and the O-flute's corner clean-up: 4 points
+  reach into the corners).
+- Back (`art/coaster_map.py`): a 92 mm square of the sea-floor map round Aegina at the board's scale. The land
+  (Aegina, Angistri, Methana, the mainland corner) cut in 0.8 deep as flat recesses (V-bit coast, small end mill
+  for the floor; islets under 4 mm2 only lasered as outlines); the sea's depth lines lasered every 50 m (the Saronic
+  Gulf is shallow: 100 m gives only a few). The back is the side on the table: it's practice for the board's back.
+- Files: `export/coaster.step` / `.stl`; `coaster_top.dxf` (layers `field`, `blue`, `turquoise`; origin front-left);
+  `coaster_back.dxf` (layers `islands`, `laser`; as it lies back up, origin front-left).
+- Order (the board's, small):
+  1. Back up, against the L bracket corner (mark the edge). Skim 0.2-0.3 with the O-flute (flat for the laser and
+     the recesses), cut the islands, laser the depth lines (masking tape over the area against smoke stains; try
+     power / speed on an offcut first: walnut burns dark on dark).
+  2. Flip end over end about the edge on the bracket; painter's tape + CA glue, clamps on the extra wood only.
+  3. Field 2.5 deep (0.5 shallow). V-carve the 3 blue points; seal; pour blue; cure.
+  4. V-carve the 3 turquoise points, the diamond, the rim line; seal; pour turquoise; cure.
+  5. Face: field to 3, top to 12 (O-flute), 1/8" corner clean-up.
+  6. Outline with tabs, chamfer. Off: tabs, sand, oil (food-safe finish is not needed: the cup doesn't touch the wood
+     long, but a hard oil or wax keeps rings off).
+- What to note down for the board: V-bit depth vs real width, how proud to pour and how many bubbles, cure time,
+  facing feeds and the finish on walnut + epoxy, the flip's error (look at the outline against the back map), laser
+  power / speed for a good line on walnut.
+- **Hot cups:** most tabletop epoxies soften at 50-60 C, and a fresh coffee mug's base can be hotter: use a
+  heat-resistant epoxy for the coaster (or accept a faint ring on the points); for the board it doesn't matter.

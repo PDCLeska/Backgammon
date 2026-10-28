@@ -25,6 +25,8 @@ cheap stock (pine / MDF) first. Start the next session from `docs/DOCUMENTATION.
 
 ## CAD
 - Env: `C:\Users\leska\cadenv` (build123d). `cad\board.py` = model, `cad\make.py check export`.
+- **Coaster first** (Amir, 2026-10-28): the practice piece with every board technique, `cad\coaster.py check export`,
+  viewer `?model=coaster`, back map `art\coaster_map.py`. Docs section 3.
 - Back map: `art/topo.py` (GMRT data -> contours -> `art/back_map.json`, preview png, `export/bg_back_*.dxf`).
 - Viewer: `review\serve.py --port=8771` -> http://localhost:8771/review/ (rebuilds on save; fold slider, Carvera bed outline).
 - Run `check` before handing over any geometry change; say which files changed.
