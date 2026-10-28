@@ -30,7 +30,7 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Walnut: thickness after flattening, blank size | `T` | 18.5 mm (faced to 18 after the pour), 2 blanks ~200 x 300 |
 | Epoxy: product, colours (turquoise, deep blue pigment / mica) | Pour depth | 2.5 mm pours (coating / tabletop epoxy is fine) |
 | Hinges: a small brass butt hinge (length, leaf width, leaf thickness, knuckle) | Mortises | 30 x 12 x 1, knuckle 4 |
-| Magnets | Rim pockets | 6 x 3 discs (outboard of the rim line) |
+| Magnets | Rim pockets | 6 x 3 discs: Amir has them (measure one: diameter for the press fit) |
 
 ---
 
