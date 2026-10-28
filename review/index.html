@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backgammon Board Review</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --ink: #1d2330; --muted: #6b7384; --line: #e2e5ea;
+    --accent: #2f6fb5; --ok: #2f9e5b; --warn: #c9821b; --bad: #d14343; --view: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14171c; --panel: #1c2027; --ink: #e6e9ef; --muted: #8d95a5; --line: #2b313b;
+            --accent: #5b9be0; --view: #191d23; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #app { display: grid; grid-template-columns: 290px 1fr; height: 100vh; }
+  aside { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 14px 14px 24px; }
+  h1 { font-size: 15px; margin: 0 0 2px; }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 0 8px; }
+  .sub { color: var(--muted); font-size: 12px; }
+  main { position: relative; background: var(--view); }
+  canvas { display: block; }
+  button, select { font: inherit; background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .slider { display: grid; grid-template-columns: 74px 1fr 52px; gap: 6px; align-items: center; margin: 4px 0; }
+  .slider output { text-align: right; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  label.chk { display: flex; align-items: center; gap: 7px; padding: 3px 0; cursor: pointer; }
+  .sw { width: 11px; height: 11px; border-radius: 3px; flex: none; border: 1px solid var(--line); }
+  .size { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 11px; }
+  .hit { color: var(--bad); font-weight: 600; }
+  #hud { position: absolute; left: 14px; top: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-variant-numeric: tabular-nums; }
+  #hud b { font-size: 18px; }
+  #status { position: absolute; right: 14px; top: 12px; max-width: 46%; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+  #status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  #err { white-space: pre-wrap; font: 11px/1.35 ui-monospace, Consolas, monospace; color: var(--bad);
+    max-height: 40vh; overflow: auto; margin-top: 6px; display: none; }
+  #coll { font: 11px/1.45 ui-monospace, Consolas, monospace; white-space: pre-wrap; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-variant-numeric: tabular-nums; }
+  .kv span:nth-child(odd) { color: var(--muted); }
+  kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 11px; }
+  details summary { cursor: pointer; color: var(--muted); margin: 4px 0; }
+  @media (max-width: 760px) { #app { grid-template-columns: 1fr; grid-template-rows: 55vh 1fr; }
+    aside { order: 2; border-right: 0; border-top: 1px solid var(--line); } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h1>Backgammon Board</h1>
+    <div class="sub">Rebuilds automatically when <code>cad/*.py</code> is saved.</div>
+
+    <h2>Fold</h2>
+    <div class="slider"><span>Fold</span><input id="fold" type="range" min="0" max="180" step="1" value="0"><output id="foldV"></output></div>
+    <div class="row" style="margin-top:6px">
+      <button id="play" class="primary">▶ Open / close</button><button id="open">Open</button><button id="closed">Closed</button>
+    </div>
+    <label class="chk" style="margin-top:6px"><input id="chk" type="checkbox" checked> Checkers + dice (starting position; hidden while folding)</label>
+
+    <h2>View</h2>
+    <div class="row">
+      <button data-view="iso">Iso</button><button data-view="player">Player</button>
+      <button data-view="top">Top</button><button data-view="side">Side</button><button data-view="hinge">Hinge</button>
+    </div>
+    <label class="chk" style="margin-top:8px"><input id="bed" type="checkbox"> Carvera Air work area (300 × 200) under the left half</label>
+    <label class="chk"><input id="edges" type="checkbox" checked> Edge lines</label>
+    <label class="chk"><input id="metal" type="checkbox"> <b style="color:#d14343">Metal in red</b> (hinges, magnets)</label>
+    <label class="chk"><input id="clip" type="checkbox"> Section cut</label>
+    <div class="row"><select id="clipAxis"><option value="x">X (from the left)</option><option value="y">Y (from the front)</option><option value="z">Z (from the top)</option></select>
+      <button id="clipFlip">Flip</button></div>
+    <input id="clipPos" type="range" min="-190" max="190" step="0.5" value="0">
+
+    <h2>Parts</h2>
+    <div class="row" style="margin-bottom:4px"><button id="allOn">All</button><button id="woodOnly">Wood only</button></div>
+    <div id="parts"></div>
+
+    <h2>Checks (make.py check)</h2>
+    <div id="collState" class="sub">–</div>
+    <details><summary>Details</summary><div id="coll"></div></details>
+
+    <h2>Key numbers</h2>
+    <div id="params" class="kv"></div>
+
+    <h2>Shortcuts</h2>
+    <div class="sub"><kbd>Space</kbd> open/close · <kbd>R</kbd> rebuild · double-click = start view</div>
+  </aside>
+  <main id="view">
+    <div id="hud">Fold <b id="hF">0</b>°<br><span class="sub" id="hS">open</span></div>
+    <div id="status"><span class="dot" id="sdot"></span><span id="stext">connecting…</span>
+      <button id="rebuild" style="margin-left:8px">Rebuild</button><div id="err"></div></div>
+  </main>
+</div>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { STLLoader } from "three/addons/loaders/STLLoader.js";
+
+const $ = (id) => document.getElementById(id);
+const view = $("view");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.localClippingEnabled = true;
+view.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const dark = matchMedia("(prefers-color-scheme: dark)");
+const setBg = () => { scene.background = new THREE.Color(dark.matches ? 0x191d23 : 0xeef1f5); };
+setBg(); dark.addEventListener("change", setBg);
+const camera = new THREE.PerspectiveCamera(35, 1, 1, 4000);
+camera.up.set(0, 0, 1);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.zoomToCursor = true;
+controls.minDistance = 40; controls.maxDistance = 2000;
+renderer.domElement.addEventListener("dblclick", () => setView("iso"));
+scene.add(new THREE.HemisphereLight(0xffffff, 0x445066, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(-160, -220, 300); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(200, 160, 80); scene.add(fill);
+const grid = new THREE.GridHelper(600, 30, 0x8894a8, 0xc5ccd6); grid.rotation.x = Math.PI / 2;
+grid.material.transparent = true; grid.material.opacity = 0.35; scene.add(grid);
+const bed = new THREE.Group(); scene.add(bed);
+
+const clipPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+let model = null, version = null, meshes = {}, playing = false, dir = 1, fold = 0;
+const hidden = new Set();
+
+function resize() {
+  const r = view.getBoundingClientRect();
+  renderer.setSize(r.width, r.height); camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(view);
+
+function setView(v) {
+  const d = 900 / Math.min(1, camera.aspect), t = new THREE.Vector3(0, 0, 10);
+  const p = { iso: [0.7, -1.1, 0.9], player: [0, -1, 0.75], top: [0, -0.001, 1], side: [1, 0, 0.15], hinge: [0, -1, 0.05] }[v];
+  camera.position.copy(t).add(new THREE.Vector3(...p).normalize().multiplyScalar(d));
+  controls.target.copy(t); controls.update();
+}
+
+function buildBed() {
+  bed.clear();
+  if (!model) return;
+  const k = model.kin, w = k.cy, l = k.cx, cx = -k.W / 2;        // a half lies with its long side along the bed's X
+  const shape = new THREE.BufferGeometry().setFromPoints([[-w / 2, -l / 2], [w / 2, -l / 2], [w / 2, l / 2], [-w / 2, l / 2], [-w / 2, -l / 2]]
+    .map(([x, y]) => new THREE.Vector3(cx + x, y, 0.3)));
+  bed.add(new THREE.Line(shape, new THREE.LineBasicMaterial({ color: 0xd14343 })));
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, l), new THREE.MeshBasicMaterial({ color: 0xd14343, transparent: true, opacity: 0.08, depthWrite: false }));
+  plane.position.set(cx, 0, 0.2); bed.add(plane);
+}
+
+let loading = null;
+async function loadModel(ver) {
+  loading = ver;
+  const m = await (await fetch(`data/model.json?v=${ver}`)).json();
+  const loader = new STLLoader();
+  const next = {};
+  await Promise.all(Object.entries(m.parts).map(async ([name, info]) => {
+    const buf = await (await fetch(`data/${name}.stl?v=${ver}`)).arrayBuffer();
+    const geo = loader.parse(buf); geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: info.color, metalness: info.metal ? 0.5 : 0.05,
+      roughness: info.metal ? 0.35 : 0.6, side: THREE.DoubleSide, clippingPlanes: [] });
+    const mesh = new THREE.Mesh(geo, mat); mesh.matrixAutoUpdate = false;
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30),
+      new THREE.LineBasicMaterial({ color: 0x10151d, transparent: true, opacity: 0.4, clippingPlanes: [] }));
+    mesh.add(edges);
+    next[name] = { mesh, edges, info };
+  }));
+  if (loading !== ver) { Object.values(next).forEach((o) => o.mesh.geometry.dispose()); return; }
+  Object.values(meshes).forEach((o) => { scene.remove(o.mesh); o.mesh.geometry.dispose(); });
+  meshes = next; model = m;
+  Object.values(meshes).forEach((o) => scene.add(o.mesh));
+  buildPartsPanel(); buildParams(); buildBed(); applyToggles(); update();
+}
+
+function buildPartsPanel() {
+  $("parts").innerHTML = "";
+  const groups = {};
+  for (const [name, o] of Object.entries(meshes)) (groups[o.info.group] ||= []).push(name);
+  for (const [g, names] of Object.entries(groups)) {
+    const o = meshes[names[0]], s = names.length <= 2 ? o.info.size.map((v) => v.toFixed(0)).join("×") : "";
+    const bad = names.some((n) => !meshes[n].info.valid);
+    const el = document.createElement("label"); el.className = "chk";
+    el.innerHTML = `<input type="checkbox" ${names.every((n) => !hidden.has(n)) ? "checked" : ""}><span class="sw" style="background:${o.info.color}"></span>
+      <span>${o.info.label}</span>${bad ? ' <span class="hit">invalid solid</span>' : ""}<span class="size">${s}</span>`;
+    el.querySelector("input").onchange = (e) => { names.forEach((n) => e.target.checked ? hidden.delete(n) : hidden.add(n)); applyToggles(); };
+    $("parts").appendChild(el);
+  }
+}
+
+function buildParams() {
+  const built = new Date(model.built * 1000).toLocaleTimeString();
+  $("params").innerHTML = [...model.params.kv, ["Built", built], ["Build time", model.build_seconds + " s"]]
+    .map(([a, b]) => `<span>${a}</span><span>${b}</span>`).join("");
+}
+
+function applyToggles() {
+  const clip = $("clip").checked, showEdges = $("edges").checked, metal = $("metal").checked;
+  const ax = $("clipAxis").value, flip = $("clipFlip").dataset.on === "1" ? -1 : 1, pos = +$("clipPos").value;
+  const n = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, -1] }[ax].map((v) => v * flip);
+  clipPlane.normal.set(...n); clipPlane.constant = -pos * (n[0] + n[1] + n[2]);
+  for (const [name, o] of Object.entries(meshes)) {
+    o.mesh.visible = !hidden.has(name) && (!o.info.checker || ($("chk").checked && fold < 1));
+    o.mesh.material.color.set(metal && o.info.metal ? "#e01e1e" : o.info.color);
+    o.mesh.material.clippingPlanes = clip ? [clipPlane] : [];
+    o.edges.material.clippingPlanes = clip ? [clipPlane] : [];
+    o.edges.visible = showEdges;
+    o.mesh.material.needsUpdate = true;
+  }
+  bed.visible = $("bed").checked;
+}
+
+// the right half turns about the hinge axis (y, at x = 0, z = T): same as board.fold()
+function update() {
+  if (!model) return;
+  const T = model.kin.T;
+  const R = new THREE.Matrix4().makeTranslation(0, 0, T).multiply(new THREE.Matrix4().makeRotationY(-fold * Math.PI / 180))
+    .multiply(new THREE.Matrix4().makeTranslation(0, 0, -T));
+  for (const o of Object.values(meshes)) {
+    o.mesh.matrix.copy(o.info.side === "R" ? R : new THREE.Matrix4()); o.mesh.matrixWorldNeedsUpdate = true;
+  }
+  $("fold").value = fold; $("foldV").textContent = fold.toFixed(0) + "°"; $("hF").textContent = fold.toFixed(0);
+  $("hS").textContent = fold < 1 ? "open: " + (2 * model.kin.W).toFixed(0) + " × " + model.kin.L.toFixed(0) + " mm"
+    : fold > 179 ? "closed: " + model.kin.W.toFixed(0) + " × " + model.kin.L.toFixed(0) + " × " + (2 * T).toFixed(0) + " mm" : "folding";
+  applyToggles();
+}
+
+function renderChecks(c) {
+  const st = $("collState");
+  if (c.state === "running") { st.innerHTML = "Running the checks…"; return; }
+  st.innerHTML = c.ok ? '<span style="color:var(--ok)">All clear: fits the Carvera, nothing collides open, folding or closed</span>'
+                      : '<span class="hit">Problems: see details</span>';
+  $("coll").textContent = (c.lines || []).join("\n");
+}
+
+async function poll() {
+  try {
+    const s = await (await fetch("data/status.json?t=" + Date.now())).json();
+    const dot = $("sdot"), txt = $("stext"), err = $("err");
+    if (s.state === "building") { dot.style.background = "var(--warn)"; txt.textContent = "Rebuilding model…"; }
+    else if (s.state === "error") { dot.style.background = "var(--bad)"; txt.textContent = "Build failed; showing the last good model";
+      err.style.display = "block"; err.textContent = s.error; }
+    else { dot.style.background = "var(--ok)"; txt.textContent = `Up to date (${new Date(+s.version).toLocaleTimeString()})`; err.style.display = "none"; }
+    if (s.state === "ok" && s.version !== version) { version = s.version; await loadModel(version); }
+    const c = await (await fetch("data/collisions.json?t=" + Date.now())).json();
+    if (c.version === version) renderChecks(c);
+  } catch (e) { $("sdot").style.background = "var(--bad)"; $("stext").textContent = "Server not reachable: run review/serve.py"; }
+  setTimeout(poll, 1500);
+}
+
+let last = performance.now();
+function loop(t) {
+  const dt = Math.min(0.1, (t - last) / 1000); last = t;
+  if (playing && model) {
+    fold = Math.max(0, Math.min(180, fold + dir * 70 * dt));
+    if (fold === 180 || fold === 0) { playing = false; dir = -dir; $("play").textContent = "▶ Open / close"; }
+    update();
+  }
+  controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+
+$("fold").oninput = () => { fold = +$("fold").value; playing = false; update(); };
+$("play").onclick = () => { if (!playing) { dir = fold >= 90 ? -1 : 1; } playing = !playing;
+  $("play").textContent = playing ? "❚❚ Pause" : "▶ Open / close"; };
+$("open").onclick = () => { playing = false; fold = 0; update(); };
+$("closed").onclick = () => { playing = false; fold = 180; update(); };
+document.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => setView(b.dataset.view)));
+["chk", "bed", "edges", "metal", "clip", "clipAxis", "clipPos"].forEach((id) => ($(id).oninput = () => { if (id === "clipPos") $("clip").checked = true; applyToggles(); }));
+$("clipFlip").onclick = (e) => { e.target.dataset.on = e.target.dataset.on === "1" ? "0" : "1"; applyToggles(); };
+$("allOn").onclick = () => { hidden.clear(); buildPartsPanel(); applyToggles(); };
+$("woodOnly").onclick = () => { hidden.clear();
+  Object.entries(meshes).forEach(([n, o]) => (o.info.metal || o.info.checker) && hidden.add(n)); buildPartsPanel(); applyToggles(); };
+$("rebuild").onclick = () => fetch("/rebuild?model=board", { method: "POST" });
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" && e.target.type !== "range") return;
+  if (e.code === "Space") { e.preventDefault(); $("play").click(); }
+  if (e.key === "r" || e.key === "R") $("rebuild").click();
+});
+
+resize(); setView("iso"); poll(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
