@@ -2,7 +2,7 @@
 Run from the repo root:  C:/Users/leska/cadenv/Scripts/python cad/make.py [check] [export]
 check  = parts valid; each half fits the Carvera Air; checkers fit the points; nothing collides open, folding
          (90, 135 deg) or closed; the dice fit in the closed box
-export = STEP per part for Makera CAM (2 trays, the 2 inlay colours, a checker), STL of the same
+export = STEP / STL per part for Makera CAM (2 halves, a checker); DXF of the epoxy outlines per half
 """
 import os, sys, itertools
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +24,7 @@ def hit(a, b):
 
 def _skip(a, b):
     """Pairs that touch by design: leaves / magnets in their own tray, the knuckles in their coves.
-    (Inlays are not skipped: each piece must sit in its pocket with the glue gap all round.)"""
+    (The epoxy is not skipped: each fill must sit in its own pocket and touch nothing else.)"""
     for x, y in ((a, b), (b, a)):
         if x.startswith(("leaf", "mag")) and y.startswith("tray") and x[-1] == y[-1]:
             return True
@@ -64,39 +64,39 @@ def check(P=None, C=None):
           f"{mid:.0f} mm between two full rows  {'ok' if mid >= 5 else 'NO SPACE'}")
     floor = bd.FIELD_Z - bd.D_FIN
     ok &= floor >= 5
-    print(f"  wood under the inlays {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")
+    print(f"  wood under the points {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")
 
-    print("V-carve inlays (%d maple + %d padauk plugs, %.0f deg V-bit, sharp tips)" % (2 * bd.N_PTS, 2 * bd.N_PTS, bd.VBIT_ANGLE))
+    print("Epoxy points (12 turquoise + 12 deep blue, V-carved with the %.0f deg bit, sharp tips)" % bd.VBIT_ANGLE)
     reach = bd.VBIT_D / 2 / bd.VBIT_K
-    h = bd.INLAY_P - bd.GLUE_GAP + bd.PLUG_START               # plug wall height
-    vok = bd.INLAY_P <= reach and h <= reach
+    vok = bd.FILL_P <= reach
     ok &= vok
-    print(f"  V-bit ({bd.VBIT_D:.0f} mm wide) reaches {reach:.1f} deep: pocket {bd.INLAY_P:.1f}, plug walls {h:.1f}  {'ok' if vok else 'TOO DEEP FOR THE BIT'}")
+    print(f"  V-bit ({bd.VBIT_D:.0f} mm wide) reaches {reach:.1f} deep: point pockets {bd.FILL_P:.1f}, rim line {bd.LINE_D:.2f}, diamonds {bd.DIA_D:.1f}  {'ok' if vok else 'TOO DEEP FOR THE BIT'}")
     try:
-        flat = bd.point_face(0, True, bd.FACE - bd.INLAY_P * bd.VBIT_K).bounding_box().size
+        flat = bd.point_face(0, True, bd.FACE - bd.FILL_P * bd.VBIT_K).bounding_box().size
         print(f"  pocket floor (flat, cleared by the V-bit): {flat.X:.1f} wide at the base, {flat.Y:.0f} long")
     except Exception:
         ok = False; print("  POCKET HAS NO FLAT FLOOR (too deep for the point's width)")
-    lo, hi = bd.FIELD_Z - bd.D_PLUG, bd.FIELD_Z
-    wrong = [n for n, (s, _, c) in P.items() if c.startswith("inlay") and
-             (abs(s.bounding_box().min.Z - lo) > 0.01 or abs(s.bounding_box().max.Z - hi) > 0.01)]
+    lx = bd.RIM_IN + bd.FIELD_W + bd.LINE_GAP + bd.LINE_W                 # the line's outer edge on the side rim
+    walls = dict(field_wall=bd.LINE_GAP, magnet=bd.MAG_X - bd.MAG_D / 2 - bd.MAG_FIT / 2 - lx,
+                 diamond=bd.SIDE_X - bd.DIA_W / 2 - lx, chamfer=bd.HALF_W - bd.EDGE_CH - (bd.MAG_X + bd.MAG_D / 2),
+                 front_rim_outside=bd.RIM_OUT - bd.LINE_GAP - bd.LINE_W)
+    wok = min(walls.values()) >= 1.5
+    ok &= wok
+    print("  walnut round the rim line / magnets: " + ", ".join(f"{k.replace('_', ' ')} {v:.1f}" for k, v in walls.items())
+          + f"  {'ok' if wok else 'TOO THIN (< 1.5: may break)'}")
+    lo, hi = bd.FIELD_Z - bd.D_FIN, bd.FIELD_Z
+    pts = {n: v for n, v in P.items() if n.startswith("fill")}
+    wrong = [n for n, (s, *_) in pts.items() if abs(s.bounding_box().min.Z - lo) > 0.01 or abs(s.bounding_box().max.Z - hi) > 0.01]
     ok &= not wrong
-    n_in = sum(1 for _, _, c in P.values() if c.startswith("inlay"))
-    print(f"  {n_in} plugs, all flush in the field floor, {bd.D_PLUG:.1f} thick when finished (z {lo:.1f} .. {hi:.1f})" if not wrong else f"  NOT IN THE FLOOR: {wrong}")
-    print(f"  field first cut {bd.FACE:.1f} shallow; pockets {bd.INLAY_P:.1f} below that; a plug's walls wedge on the pocket's, "
-          f"its end {bd.GLUE_GAP:.1f} above the pocket floor (glue); the facing pass takes the skirt, the {bd.PLUG_START:.1f} start and {bd.FACE:.1f} of floor")
-    need_t = h + bd.SKIRT_T
-    ok &= need_t <= bd.PLUG_STOCK
-    print(f"  a plug + skirt is {need_t:.1f} tall: {bd.PLUG_STOCK:.0f} mm plug wood  {'ok' if need_t <= bd.PLUG_STOCK else 'TOO THIN'}")
-    plugs, outlines = bd.inlay_sheet()
-    clash = [k for k in range(len(outlines) - 1) if outlines[k].distance_to(outlines[k + 1]) < bd.SHEET_GAP - 0.01]
-    sb = Compound(outlines).bounding_box().size
-    need = sorted([sb.X + bd.TOOL_D, sb.Y + bd.TOOL_D]); room = sorted([bd.CARVERA_X, bd.CARVERA_Y])
-    sfit = need[0] <= room[0] and need[1] <= room[1] and not clash
-    ok &= sfit
-    print(f"  plug sheet per wood: 12 plugs in {sb.X:.0f} x {sb.Y:.0f} (blank {sb.X + 2 * bd.SHEET_GAP:.0f} x {sb.Y + 2 * bd.SHEET_GAP:.0f} x {bd.PLUG_STOCK:.0f}), "
-          f"skirts {bd.SHEET_GAP:.1f} apart  {'ok' if sfit else 'PROBLEM: ' + ('plugs too close ' + str(clash) if clash else 'too big for the bed')}")
-
+    print(f"  {len(pts)} point fills, flush with the field floor, {bd.D_FIN:.1f} thick (z {lo:.1f} .. {hi:.1f})" if not wrong else f"  NOT IN THE FLOOR: {wrong}")
+    gap = bd.PT_W - bd.PT_BASE - 2 * bd.FACE
+    print(f"  walnut between two point pockets at the first floor: {gap:.1f} mm (finished {bd.PT_W - bd.PT_BASE:.1f})"
+          f"{'  -> pour the two colours one after the other (docs 2.2)' if gap < 2 else ''}")
+    left = bd.oflute_leftovers()
+    near = [n for n, (s, sd, _) in pts.items() if sd == "R" and any(
+        getattr(bd.point_face(bd.point_x(int(n[6:7])), n[5] == "f", bd.FACE) & l, "area", 0) > 0.001 for l in left)]
+    print(f"  facing with the {bd.OFLUTE_D:.0f} mm O-flute leaves the field corners (r{bd.OFLUTE_D / 2:.0f}); "
+          f"{len(near)} points per half reach into them: " + (f"{', '.join(n[:-2] for n in near)} -> 1/8\" corner clean-up pass after facing" if near else "none"))
     hits = []
     for (a, (sa, *_)), (b, (sb, *_)) in itertools.combinations({**P, **C}.items(), 2):
         if not _skip(a, b) and (v := hit(sa, sb)):
@@ -123,31 +123,34 @@ def export():
     out = os.path.join(ROOT, "export")
     os.makedirs(out, exist_ok=True)
     P = bd.build()
-    for f in ("bg_inlay_sheet.step", "bg_inlay_sheet.stl", "bg_inlay_sheet.dxf"):
+    for f in ("bg_inlay_sheet.step", "bg_inlay_sheet.stl", "bg_inlay_sheet.dxf", "bg_plug_sheet.step", "bg_plug_sheet.stl"):
         if os.path.exists(os.path.join(out, f)):
-            os.remove(os.path.join(out, f))      # flat-bit inlay: replaced by the V-carve plug sheet
-    plugs, outlines = bd.inlay_sheet()
-    groups = {"half_right": [P["tray_R"][0]], "half_left": [P["tray_L"][0]], "checker": [bd.checker()],
-              "plug_sheet": plugs}
+            os.remove(os.path.join(out, f))      # wood plugs: replaced by the epoxy fill
+    groups = {"half_right": [P["tray_R"][0]], "half_left": [P["tray_L"][0]], "checker": [bd.checker()]}
     for name, shapes in groups.items():
         c = Compound(shapes)
         export_step(c, os.path.join(out, f"bg_{name}.step"))
         export_stl(c, os.path.join(out, f"bg_{name}.stl"), tolerance=0.02)
         print("  export/bg_%s.step / .stl" % name)
-    # the points for the inlay software (VCarve / F-Engrave make the V toolpaths and the plugs from these):
+    # the points for the V-carve toolpaths (Makera CAM / VCarve / F-Engrave), one layer per colour (= per pour):
     # outlines at the first field floor (FACE above the finished one), one layer per wood, in the half's own frame
     for side, sign in (("right", 1), ("left", -1)):
         dxf = ExportDXF()
-        dxf.add_layer("field"); dxf.add_layer("maple"); dxf.add_layer("padauk")
+        dxf.add_layer("field"); dxf.add_layer("turquoise"); dxf.add_layer("blue")
         dxf.add_shape(Rectangle(bd.FIELD_W, bd.FIELD_L).located(Location((sign * (bd.RIM_IN + bd.FIELD_W / 2), 0))).wire(), layer="field")
         for n, (s, sd, c) in P.items():
-            if c.startswith("inlay") and sd == side[0].upper():
+            if n.startswith("fill") and sd == side[0].upper():
                 i, front = int(n.split("_")[1][1:]), n.split("_")[1][0] == "f"
                 f = bd.point_face(bd.point_x(i), front, bd.FACE)
                 f = mirror(f, Plane.YZ) if sign < 0 else f
-                dxf.add_shape(f.faces()[0].outer_wire(), layer="maple" if c == "inlay0" else "padauk")
+                dxf.add_shape(f.faces()[0].outer_wire(), layer="turquoise" if c == "fill0" else "blue")
+        for n in ("line", "diamond"):                # on the rim top (the outline at the top: the V-groove's width)
+            f = Pos(0, 0, -bd.T) * (bd.rim_line() if n == "line" else bd.diamond()).faces().sort_by(Axis.Z)[-1]
+            f = mirror(f, Plane.YZ).faces()[0] if sign < 0 else f
+            for w in [f.outer_wire(), *f.inner_wires()]:
+                dxf.add_shape(w, layer="turquoise")
         dxf.write(os.path.join(out, f"bg_points_{side}.dxf"))
-        print(f"  export/bg_points_{side}.dxf (field + 6 maple + 6 padauk point outlines, at the first floor)")
+        print(f"  export/bg_points_{side}.dxf (field + 6 turquoise + 6 blue points at the first floor; rim line + diamond)")
 
 
 if __name__ == "__main__":

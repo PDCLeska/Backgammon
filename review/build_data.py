@@ -11,9 +11,9 @@ DATA = os.path.join(HERE, "data")
 sys.path[:0] = [os.path.join(ROOT, "cad"), ROOT]
 
 # colour key -> (colour, viewer group label)
-LOOK = dict(tray=("#5b3a24", "2 halves (walnut, 18 mm)"), inlay0=("#e9d6b0", "12 points: maple inlay"),
-            inlay1=("#c4512a", "12 points: padauk inlay"), leaf=("#c9a54a", "2 butt hinges (brass)"),
-            barrel=("#c9a54a", "2 butt hinges (brass)"), mag=("#c7ccd4", "4 magnets (8 x 3)"),
+LOOK = dict(tray=("#5b3a24", "2 halves (walnut, 18 mm)"), fill0=("#5fd0c4", "turquoise epoxy (12 points, rim line, diamonds)"),
+            fill1=("#173f7a", "12 points: deep blue epoxy"), leaf=("#c9a54a", "2 butt hinges (brass)"),
+            barrel=("#c9a54a", "2 butt hinges (brass)"), mag=("#c7ccd4", "4 magnets (6 x 3)"),
             white=("#f1ead9", "15 light checkers"), black=("#2a2522", "15 dark checkers"), die=("#fbfaf6", "2 dice"))
 GROUP = dict(barrel="leaf")
 
@@ -47,23 +47,14 @@ def main():
             info[n] = dict(label=lab, color=col, side=side, group=GROUP.get(key, key), checker=n in C,
                            metal=key in ("leaf", "barrel", "mag"), valid=s.is_valid,
                            size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
-        from build123d import Pos
-        for k, p in enumerate(bd.inlay_sheet()[0]):        # the plug sheet, laid out in front of the board
-            s = Pos(-125, -bd.HALF_L / 2 - 100, 0) * p
-            export_stl(s, os.path.join(DATA, f"sheet{k:02d}.stl"), tolerance=0.03, angular_tolerance=0.2)
-            bb = s.bounding_box()
-            info[f"sheet{k:02d}"] = dict(label=f"V-carve plug sheet (12 plugs on {bd.PLUG_STOCK:.0f} mm; cut once per wood)",
-                                         color="#e9d6b0", side="S", group="sheet", sheet=True,
-                                         checker=False, metal=False, valid=s.is_valid,
-                                         size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
         kin = dict(T=bd.T, W=bd.HALF_W, L=bd.HALF_L, cx=bd.CARVERA_X, cy=bd.CARVERA_Y)
         model = dict(version=version, built=time.time(), build_seconds=round(time.time() - t0, 1), parts=info, kin=kin,
                      params=dict(kv=[["Open", f"{2 * bd.HALF_W:.0f} × {bd.HALF_L:.0f} mm"],
                                      ["Closed", f"{bd.HALF_W:.0f} × {bd.HALF_L:.0f} × {2 * bd.T:.0f} mm"],
                                      ["Half", f"{bd.HALF_W:.0f} × {bd.HALF_L:.0f} × {bd.T:.0f} (bed {bd.CARVERA_X:.0f} × {bd.CARVERA_Y:.0f})"],
                                      ["Field", f"{bd.FIELD_W:.0f} × {bd.FIELD_L:.0f}, {bd.POCKET:.0f} deep"],
-                                     ["Points", f"{bd.PT_W:.1f} pitch, {bd.PT_LEN:.0f} long, sharp tips, inlay {bd.D_PLUG} thick"],
-                                     ["Inlays", f"V-carve, {bd.VBIT_ANGLE:.0f}° bit, pocket {bd.INLAY_P}, glue gap {bd.GLUE_GAP}, plugs from {bd.PLUG_STOCK:.0f} mm"],
+                                     ["Points", f"{bd.PT_W:.1f} pitch, {bd.PT_LEN:.0f} long, sharp tips, epoxy {bd.D_FIN} thick"],
+                                     ["Epoxy", f"V-carved with the {bd.VBIT_ANGLE:.0f}° bit; rim line {bd.LINE_W} wide, diamonds {bd.DIA_L:.0f} × {bd.DIA_W:.0f}"],
                                      ["Checkers", f"Ø{bd.CHK_D:.0f} × {bd.CHK_T:.0f} mm"],
                                      ["Bar", f"{2 * bd.RIM_IN:.0f} mm (the two inner rims)"]]))
         write("model.json", model)
