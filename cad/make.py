@@ -62,34 +62,40 @@ def check(P=None, C=None):
     ok &= mid >= 5
     print(f"  {bd.STACK} checkers on a point reach {stack:.0f} of the {bd.FIELD_L / 2:.1f} mm to the middle: "
           f"{mid:.0f} mm between two full rows  {'ok' if mid >= 5 else 'NO SPACE'}")
-    floor = bd.FIELD_Z - bd.INLAY_D
+    floor = bd.FIELD_Z - bd.D_FIN
     ok &= floor >= 5
     print(f"  wood under the inlays {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")
 
-    print("Inlays (%d light + %d dark, %.1f deep, %.2f glue gap all round, cut from %.0f mm stock)" % (2 * bd.N_PTS, 2 * bd.N_PTS, bd.INLAY_D, bd.INLAY_FIT, bd.INLAY_STOCK))
-    lo, hi = bd.FIELD_Z - bd.INLAY_D, bd.FIELD_Z
+    print("V-carve inlays (%d maple + %d padauk plugs, %.0f deg V-bit, sharp tips)" % (2 * bd.N_PTS, 2 * bd.N_PTS, bd.VBIT_ANGLE))
+    reach = bd.VBIT_D / 2 / bd.VBIT_K
+    h = bd.INLAY_P - bd.GLUE_GAP + bd.PLUG_START               # plug wall height
+    vok = bd.INLAY_P <= reach and h <= reach
+    ok &= vok
+    print(f"  V-bit ({bd.VBIT_D:.0f} mm wide) reaches {reach:.1f} deep: pocket {bd.INLAY_P:.1f}, plug walls {h:.1f}  {'ok' if vok else 'TOO DEEP FOR THE BIT'}")
+    try:
+        flat = bd.point_face(0, True, bd.FACE - bd.INLAY_P * bd.VBIT_K).bounding_box().size
+        print(f"  pocket floor (flat, cleared by the V-bit): {flat.X:.1f} wide at the base, {flat.Y:.0f} long")
+    except Exception:
+        ok = False; print("  POCKET HAS NO FLAT FLOOR (too deep for the point's width)")
+    lo, hi = bd.FIELD_Z - bd.D_PLUG, bd.FIELD_Z
     wrong = [n for n, (s, _, c) in P.items() if c.startswith("inlay") and
              (abs(s.bounding_box().min.Z - lo) > 0.01 or abs(s.bounding_box().max.Z - hi) > 0.01)]
     ok &= not wrong
     n_in = sum(1 for _, _, c in P.values() if c.startswith("inlay"))
-    print(f"  {n_in} pieces, all flush in the field floor (z {lo:.1f} .. {hi:.1f})" if not wrong else f"  NOT IN THE FLOOR: {wrong}")
-    pocket, piece = bd.point_face(), bd.inlay_piece_face()
-    gap = (pocket.area - piece.area) / sum(e.length for e in pocket.edges())     # mean gap all round
-    pb = piece.bounding_box().size
-    print(f"  piece {pb.X:.2f} x {pb.Y:.2f} (pocket {pocket.bounding_box().size.X:.2f} x {pocket.bounding_box().size.Y:.2f}), "
-          f"corners r {bd.TIP_R - bd.INLAY_FIT:.2f} (pocket r {bd.TIP_R:.2f} = the {bd.INLAY_TOOL_D:.1f} mm end mill), gap {gap:.2f}")
-    proud = bd.INLAY_STOCK - bd.INLAY_D - bd.FACE
-    ok &= proud >= 0.3
-    print(f"  field first cut {bd.FACE:.1f} shallow, pockets {bd.INLAY_D + bd.FACE:.1f} below that; glued in, a piece stands {proud:.1f} proud; "
-          f"the facing pass (field to its full {bd.POCKET:.0f} mm) takes {bd.FACE:.1f} of floor + all of that  {'ok' if proud >= 0.3 else 'STOCK TOO THIN'}")
-    sheet = bd.inlay_sheet()
-    clash = [k for k in range(len(sheet) - 1) if (offset(sheet[k], bd.SHEET_GAP / 2 - 0.01, kind=Kind.ARC) & offset(sheet[k + 1], bd.SHEET_GAP / 2 - 0.01, kind=Kind.ARC)).area > 0.001]
-    sb = Compound(sheet).bounding_box().size
+    print(f"  {n_in} plugs, all flush in the field floor, {bd.D_PLUG:.1f} thick when finished (z {lo:.1f} .. {hi:.1f})" if not wrong else f"  NOT IN THE FLOOR: {wrong}")
+    print(f"  field first cut {bd.FACE:.1f} shallow; pockets {bd.INLAY_P:.1f} below that; a plug's walls wedge on the pocket's, "
+          f"its end {bd.GLUE_GAP:.1f} above the pocket floor (glue); the facing pass takes the skirt, the {bd.PLUG_START:.1f} start and {bd.FACE:.1f} of floor")
+    need_t = h + bd.SKIRT_T
+    ok &= need_t <= bd.PLUG_STOCK
+    print(f"  a plug + skirt is {need_t:.1f} tall: {bd.PLUG_STOCK:.0f} mm plug wood  {'ok' if need_t <= bd.PLUG_STOCK else 'TOO THIN'}")
+    plugs, outlines = bd.inlay_sheet()
+    clash = [k for k in range(len(outlines) - 1) if outlines[k].distance_to(outlines[k + 1]) < bd.SHEET_GAP - 0.01]
+    sb = Compound(outlines).bounding_box().size
     need = sorted([sb.X + bd.TOOL_D, sb.Y + bd.TOOL_D]); room = sorted([bd.CARVERA_X, bd.CARVERA_Y])
     sfit = need[0] <= room[0] and need[1] <= room[1] and not clash
     ok &= sfit
-    print(f"  sheet per wood: 12 pieces nested in {sb.X:.0f} x {sb.Y:.0f} (blank {sb.X + 2 * bd.SHEET_GAP:.0f} x {sb.Y + 2 * bd.SHEET_GAP:.0f} x {bd.INLAY_STOCK:.0f}), "
-          f"{bd.SHEET_GAP:.1f} between pieces  {'ok' if sfit else 'PROBLEM: ' + ('pieces too close ' + str(clash) if clash else 'too big for the bed')}")
+    print(f"  plug sheet per wood: 12 plugs in {sb.X:.0f} x {sb.Y:.0f} (blank {sb.X + 2 * bd.SHEET_GAP:.0f} x {sb.Y + 2 * bd.SHEET_GAP:.0f} x {bd.PLUG_STOCK:.0f}), "
+          f"skirts {bd.SHEET_GAP:.1f} apart  {'ok' if sfit else 'PROBLEM: ' + ('plugs too close ' + str(clash) if clash else 'too big for the bed')}")
 
     hits = []
     for (a, (sa, *_)), (b, (sb, *_)) in itertools.combinations({**P, **C}.items(), 2):
@@ -117,22 +123,31 @@ def export():
     out = os.path.join(ROOT, "export")
     os.makedirs(out, exist_ok=True)
     P = bd.build()
-    for f in ("bg_inlays_light.step", "bg_inlays_light.stl", "bg_inlays_dark.step", "bg_inlays_dark.stl"):
+    for f in ("bg_inlay_sheet.step", "bg_inlay_sheet.stl", "bg_inlay_sheet.dxf"):
         if os.path.exists(os.path.join(out, f)):
-            os.remove(os.path.join(out, f))      # replaced by the nested sheet
-    sheet = bd.inlay_sheet()
+            os.remove(os.path.join(out, f))      # flat-bit inlay: replaced by the V-carve plug sheet
+    plugs, outlines = bd.inlay_sheet()
     groups = {"half_right": [P["tray_R"][0]], "half_left": [P["tray_L"][0]], "checker": [bd.checker()],
-              "inlay_sheet": [extrude(f, bd.INLAY_STOCK) for f in sheet]}
+              "plug_sheet": plugs}
     for name, shapes in groups.items():
         c = Compound(shapes)
         export_step(c, os.path.join(out, f"bg_{name}.step"))
         export_stl(c, os.path.join(out, f"bg_{name}.stl"), tolerance=0.02)
         print("  export/bg_%s.step / .stl" % name)
-    dxf = ExportDXF()                            # the same sheet as 2D outlines (cut once in each inlay wood)
-    for f in sheet:
-        dxf.add_shape(f.faces()[0].outer_wire())
-    dxf.write(os.path.join(out, "bg_inlay_sheet.dxf"))
-    print("  export/bg_inlay_sheet.dxf (12 outlines; cut it once in each inlay wood)")
+    # the points for the inlay software (VCarve / F-Engrave make the V toolpaths and the plugs from these):
+    # outlines at the first field floor (FACE above the finished one), one layer per wood, in the half's own frame
+    for side, sign in (("right", 1), ("left", -1)):
+        dxf = ExportDXF()
+        dxf.add_layer("field"); dxf.add_layer("maple"); dxf.add_layer("padauk")
+        dxf.add_shape(Rectangle(bd.FIELD_W, bd.FIELD_L).located(Location((sign * (bd.RIM_IN + bd.FIELD_W / 2), 0))).wire(), layer="field")
+        for n, (s, sd, c) in P.items():
+            if c.startswith("inlay") and sd == side[0].upper():
+                i, front = int(n.split("_")[1][1:]), n.split("_")[1][0] == "f"
+                f = bd.point_face(bd.point_x(i), front, bd.FACE)
+                f = mirror(f, Plane.YZ) if sign < 0 else f
+                dxf.add_shape(f.faces()[0].outer_wire(), layer="maple" if c == "inlay0" else "padauk")
+        dxf.write(os.path.join(out, f"bg_points_{side}.dxf"))
+        print(f"  export/bg_points_{side}.dxf (field + 6 maple + 6 padauk point outlines, at the first floor)")
 
 
 if __name__ == "__main__":

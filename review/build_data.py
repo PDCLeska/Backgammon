@@ -47,12 +47,12 @@ def main():
             info[n] = dict(label=lab, color=col, side=side, group=GROUP.get(key, key), checker=n in C,
                            metal=key in ("leaf", "barrel", "mag"), valid=s.is_valid,
                            size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
-        from build123d import Pos, extrude
-        for k, f in enumerate(bd.inlay_sheet()):          # the cutting sheet, laid out in front of the board
-            s = Pos(-110, -bd.HALF_L / 2 - 90, 0) * extrude(f, bd.INLAY_STOCK)
+        from build123d import Pos
+        for k, p in enumerate(bd.inlay_sheet()[0]):        # the plug sheet, laid out in front of the board
+            s = Pos(-125, -bd.HALF_L / 2 - 100, 0) * p
             export_stl(s, os.path.join(DATA, f"sheet{k:02d}.stl"), tolerance=0.03, angular_tolerance=0.2)
             bb = s.bounding_box()
-            info[f"sheet{k:02d}"] = dict(label=f"Inlay cutting sheet (12 pieces, {bd.INLAY_STOCK:.0f} mm; cut once per wood)",
+            info[f"sheet{k:02d}"] = dict(label=f"V-carve plug sheet (12 plugs on {bd.PLUG_STOCK:.0f} mm; cut once per wood)",
                                          color="#e9d6b0", side="S", group="sheet", sheet=True,
                                          checker=False, metal=False, valid=s.is_valid,
                                          size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
@@ -62,8 +62,8 @@ def main():
                                      ["Closed", f"{bd.HALF_W:.0f} × {bd.HALF_L:.0f} × {2 * bd.T:.0f} mm"],
                                      ["Half", f"{bd.HALF_W:.0f} × {bd.HALF_L:.0f} × {bd.T:.0f} (bed {bd.CARVERA_X:.0f} × {bd.CARVERA_Y:.0f})"],
                                      ["Field", f"{bd.FIELD_W:.0f} × {bd.FIELD_L:.0f}, {bd.POCKET:.0f} deep"],
-                                     ["Points", f"{bd.PT_W:.1f} pitch, {bd.PT_LEN:.0f} long, inlay {bd.INLAY_D} deep"],
-                                     ["Inlays", f"12 + 12 from {bd.INLAY_STOCK:.0f} mm stock, {bd.INLAY_FIT} gap, corners r {bd.TIP_R}"],
+                                     ["Points", f"{bd.PT_W:.1f} pitch, {bd.PT_LEN:.0f} long, sharp tips, inlay {bd.D_PLUG} thick"],
+                                     ["Inlays", f"V-carve, {bd.VBIT_ANGLE:.0f}° bit, pocket {bd.INLAY_P}, glue gap {bd.GLUE_GAP}, plugs from {bd.PLUG_STOCK:.0f} mm"],
                                      ["Checkers", f"Ø{bd.CHK_D:.0f} × {bd.CHK_T:.0f} mm"],
                                      ["Bar", f"{2 * bd.RIM_IN:.0f} mm (the two inner rims)"]]))
         write("model.json", model)

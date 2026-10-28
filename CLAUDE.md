@@ -11,13 +11,14 @@ cheap stock (pine / MDF) first. Start the next session from `docs/DOCUMENTATION.
 - CAM: Makera CAM / Makera Studio takes STEP, STL, SVG, DXF. `make.py export` writes STEP + STL per part.
 
 ## Decisions (2026-10-28, v0 draft: all open until Amir says)
-- Two halves, one solid tray each (186 x 286 x 18), field pocketed 10 deep, points inlaid 1.5 deep, butt hinges
+- Two halves, one solid tray each (186 x 286 x 18), field pocketed 10 deep, points V-carve inlaid, butt hinges
   recessed into the inner rims (all milled from the top face), magnets in the outer rims. Open 372 x 286, closed
   186 x 286 x 36 (checkers and dice inside).
 - Checkers 21 x 6 (Amir, 2026-10-28: 6 in a row on a point, 10 mm left in the middle between two full rows).
 - Amir (2026-10-28): **points are wood inlays**, one wood for the board, two others for the points; **no storage
   pockets** (no room at this size). Inlay order and the cutting sheet: docs 2.2.
-- Amir (2026-10-28): **walnut board, maple + padauk points.**
+- Amir (2026-10-28): **walnut board, maple + padauk points**, as a **V-carve inlay** (90 deg V-bit, sharp tips;
+  plugs from 10 mm stock; F-Engrave or VCarve for the toolpaths). Tools ordered: docs 2.5.
 
 ## CAD
 - Env: `C:\Users\leska\cadenv` (build123d). `cad\board.py` = model, `cad\make.py check export`.

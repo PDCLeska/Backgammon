@@ -1,8 +1,8 @@
 """Backgammon board v0: a folding case, each half milled on the Carvera Air.
 
 The machine cuts 300 x 200 mm (Z 130), so a one-piece board can't be made: the board is two halves, each one
-solid tray (hardwood, 18 mm) with the playing field pocketed 10 mm deep, the 12 points inlaid 1.5 mm into the
-field floor (contrasting wood), 2 butt hinges recessed into the inner rims, 2 magnets in the outer rims. Closed,
+solid tray (walnut, 18 mm) with the playing field pocketed 10 mm deep, the 12 points V-carve inlaid into the
+field floor (maple and padauk plugs, 90 deg V-bit, sharp tips), 2 butt hinges recessed into the inner rims, 2 magnets in the outer rims. Closed,
 the two fields face each other: a 36 mm box that holds the checkers and dice.
 
 Frame: open board lying flat, the white player at the front (-Y). X left-right, the hinge line at x = 0 (the bar),
@@ -10,13 +10,14 @@ Z up, table at 0. The right half folds over onto the left about the hinge axis (
 Points (white's numbering): 1-6 front right (1 at the right edge), 7-12 front left, 13-18 back left, 19-24 back right.
 Bought-part sizes (hinges, magnets) are placeholders until chosen: see docs "Missing info".
 """
-from math import atan, cos
+from math import atan, cos, tan, radians
 from build123d import *
 
 # ---------------------------------------------------------------- machine (Carvera Air, 3-axis)
 CARVERA_X, CARVERA_Y, CARVERA_Z = 300.0, 200.0, 130.0   # work area (retail spec sheets; confirm on the machine)
 TOOL_D = 3.175                 # outline / pocket end mill (1/8")
-INLAY_TOOL_D = 1.0             # end mill for the point pockets: every inside corner gets its radius (placeholder)
+VBIT_ANGLE, VBIT_D = 90.0, 6.0 # Makera 90 deg chamfering bit, 6 mm shank (cutting diameter: listing, check): the inlays
+VBIT_K = tan(radians(VBIT_ANGLE / 2))   # the V's walls: sideways per mm of depth (1.0 at 90 deg)
 
 # ---------------------------------------------------------------- halves
 HALF_W, HALF_L, T = 186.0, 286.0, 18.0     # one half: across (X) x along (Y) x thick
@@ -24,18 +25,22 @@ CORNER_R = 8.0                 # outer corners only (the hinge side stays square
 RIM_OUT, RIM_IN = 12.0, 9.0    # outer rims (front, back, outer side) / inner rim at the hinge (bar = 2 x RIM_IN)
 POCKET = 10.0                  # field depth below the rim
 POCKET_R = TOOL_D / 2          # the field pocket's inside corners (end mill radius)
-INLAY_D = 1.5                  # point inlay depth (below the finished field floor)
-INLAY_FIT = 0.08               # each piece is this much smaller than its pocket, all round (glue line)
-INLAY_STOCK = 3.0              # inlay wood thickness: the pieces stand proud, then the field floor is faced flush
-FACE = 0.5                     # field pocketed this much shallow first; the facing pass after glue-up takes it off
-SHEET_GAP = TOOL_D + 1.0       # between pieces on an inlay sheet: the outline tool + 1 mm
+# V-carve inlay (VCarve / F-Engrave terms): the points are V-carved into the field floor, the plugs are V-carved as
+# raised islands in the plug wood, flipped and glued in; their 45 deg walls wedge into the pocket's (no side gap)
+FACE = 0.5                     # the field is first cut this much shallow; the facing pass after glue-up takes it off
+INLAY_P = 2.5                  # pocket depth below that first floor ("flat depth"; <= the V-bit's reach)
+GLUE_GAP = 0.5                 # the plug's narrow end stops this far above the pocket floor (room for glue)
+PLUG_START = 1.0               # the plug carries on this far above the first floor ("start depth"), then its skirt
+SKIRT, SKIRT_T = 1.0, 2.0      # each plug is cut free with a 1 mm-wide, 2 mm-thick skirt round its base
+PLUG_STOCK = 10.0              # plug wood thickness (maple, padauk)
+PT_EDGE = 1.0                  # walnut between the field wall and a point's base (the V needs room at the wall)
+SHEET_GAP = TOOL_D + 1.0       # between plugs on a plug sheet: the outline tool + 1 mm
 N_PTS = 6
 FIELD_W = HALF_W - RIM_OUT - RIM_IN
 FIELD_L = HALF_L - 2 * RIM_OUT
 PT_W = FIELD_W / N_PTS         # point pitch
 PT_BASE = PT_W - 1.5           # triangle base (a 1.5 mm field strip between points)
-PT_LEN = 112.0                 # point length (4.3 checkers)
-TIP_R = INLAY_TOOL_D / 2
+PT_LEN = 112.0                 # point length, from its base (sharp tip: V-carved)
 
 # ---------------------------------------------------------------- checkers, dice
 STACK = 6                      # checkers in a row on one point (Amir: 6, with a small space left in the middle)
@@ -59,28 +64,44 @@ def point_x(i):
     return RIM_IN + PT_W * (i + 0.5)
 
 
-def point_face(x=0.0, front=True):
-    """A point's outline (the pocket): base on the field edge, every corner rounded to the inlay end mill."""
-    y0 = -(HALF_L / 2 - RIM_OUT) if front else HALF_L / 2 - RIM_OUT
+def point_face(x=0.0, front=True, grow=0.0):
+    """A point as seen on the finished board (sharp triangle, base PT_EDGE off the field wall), grown outward by grow
+    (negative: shrunk), corners kept sharp."""
+    y0 = -(HALF_L / 2 - RIM_OUT - PT_EDGE) if front else HALF_L / 2 - RIM_OUT - PT_EDGE
     s = 1 if front else -1
     corners = [(x - PT_BASE / 2, y0), (x + PT_BASE / 2, y0), (x, y0 + s * PT_LEN)]
-    face = Polygon(*(corners if front else corners[::-1]), align=None)   # counter-clockwise: normal up, so
-                                                                           # extrude() goes up (back row was cut downward)
-    return fillet(face.vertices(), TIP_R)
+    face = Polygon(*(corners if front else corners[::-1]), align=None)   # counter-clockwise: normal up
+    return face if grow == 0 else offset(face, grow, kind=Kind.INTERSECTION).faces()[0]
+
+
+def frustum(x, front, z0, g0, z1, g1):
+    """The V-walled solid between the outline grown g0 at height z0 and grown g1 at z1 (walls at the V-bit angle)."""
+    return loft([Pos(0, 0, z0) * point_face(x, front, g0), Pos(0, 0, z1) * point_face(x, front, g1)])
+
+
+D_FIN = INLAY_P - FACE         # pocket depth below the finished floor
+D_PLUG = D_FIN - GLUE_GAP      # finished inlay thickness (the plug below the finished floor)
 
 
 def triangle(x, front):
-    """The pocket for a point, below the finished field floor."""
-    return Pos(0, 0, FIELD_Z - INLAY_D) * extrude(point_face(x, front), INLAY_D)
-
-
-def inlay_piece_face(x=0.0, front=True):
-    return offset(point_face(x, front), -INLAY_FIT, kind=Kind.ARC)
+    """The V-carved pocket for a point, below the finished field floor (above it, the facing pass took the rest)."""
+    return frustum(x, front, FIELD_Z + 0.01, 0.01 * VBIT_K, FIELD_Z - D_FIN, -D_FIN * VBIT_K)
 
 
 def inlay_piece(x, front):
-    """A fitted piece in its pocket, as finished (faced flush with the field floor)."""
-    return Pos(0, 0, FIELD_Z - INLAY_D) * extrude(inlay_piece_face(x, front), INLAY_D)
+    """A plug in its pocket, as finished: faced flush, its walls on the pocket's, GLUE_GAP above the pocket floor."""
+    return frustum(x, front, FIELD_Z, 0.0, FIELD_Z - D_PLUG, -D_PLUG * VBIT_K)
+
+
+def plug_blank(x=0.0, front=True):
+    """One plug as carved in its blank (z = 0 the blank's bottom, PLUG_STOCK its top), before it is flipped:
+    the narrow end on top, walls widening down to the start depth, then the skirt it is cut free with."""
+    h = INLAY_P - GLUE_GAP + PLUG_START                       # V-walled height
+    g_top = FACE - (INLAY_P - GLUE_GAP) * VBIT_K              # outline relative to the finished point
+    g_base = FACE + PLUG_START * VBIT_K
+    island = frustum(x, front, PLUG_STOCK, g_top, PLUG_STOCK - h, g_base)
+    skirt = Pos(0, 0, PLUG_STOCK - h - SKIRT_T) * extrude(point_face(x, front, g_base + SKIRT), SKIRT_T)
+    return island + skirt
 
 
 def tray_right():
@@ -110,14 +131,18 @@ def inlays_right():
 
 
 def inlay_sheet():
-    """One wood's 12 pieces nested on a blank, alternately up and down, SHEET_GAP apart (outline faces, z = 0).
-    Both woods need the same 12 shapes (all points are the same), so one sheet layout serves both."""
-    face = Pos(0, HALF_L / 2 - RIM_OUT - PT_LEN / 2) * inlay_piece_face(0, True)   # centred on the sharp triangle
-                                                               # (not the rounded tip): flipped, the sides stay in line
-    half = atan(PT_BASE / 2 / PT_LEN)                          # half the tip angle
-    dx = PT_BASE / 2 + SHEET_GAP / cos(half)                   # antiparallel neighbours: slanted sides SHEET_GAP apart
-    pieces = [Pos(k * dx, 0) * (face if k % 2 == 0 else Rot(0, 0, 180) * face) for k in range(2 * N_PTS)]
-    return pieces
+    """One wood's 12 plugs nested on a PLUG_STOCK blank, alternately up and down, skirts SHEET_GAP apart.
+    Returns (plugs, skirt outlines). All points are the same shape, so one layout serves both woods (cut it once
+    per wood); a triangle is its own mirror image, so the flip onto the board changes nothing."""
+    g = FACE + PLUG_START * VBIT_K + SKIRT
+    outline = point_face(0, True, g)
+    bb = outline.bounding_box()
+    c = Pos(0, -(bb.min.Y + bb.max.Y) / 2, 0)                  # sharp triangle: its box centre turns it in line
+    b = bb.size.X
+    half = atan(b / 2 / bb.size.Y)                            # half the tip angle
+    dx = b / 2 + SHEET_GAP / cos(half)                        # antiparallel neighbours: slanted sides SHEET_GAP apart
+    place = [Pos(k * dx, 0, 0) * (Rot(0, 0, 180) if k % 2 else Rot()) * c for k in range(2 * N_PTS)]
+    return [p * plug_blank() for p in place], [p * outline for p in place]
 
 
 def hardware_right():
