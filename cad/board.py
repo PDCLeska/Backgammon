@@ -10,12 +10,13 @@ Z up, table at 0. The right half folds over onto the left about the hinge axis (
 Points (white's numbering): 1-6 front right (1 at the right edge), 7-12 front left, 13-18 back left, 19-24 back right.
 Bought-part sizes (hinges, magnets) are placeholders until chosen: see docs "Missing info".
 """
+from math import atan, cos
 from build123d import *
 
 # ---------------------------------------------------------------- machine (Carvera Air, 3-axis)
 CARVERA_X, CARVERA_Y, CARVERA_Z = 300.0, 200.0, 130.0   # work area (retail spec sheets; confirm on the machine)
 TOOL_D = 3.175                 # outline / pocket end mill (1/8")
-INLAY_TOOL_D = 1.0             # smallest end mill for the point pockets (tip radius); a V-bit inlay is the other way
+INLAY_TOOL_D = 1.0             # end mill for the point pockets: every inside corner gets its radius (placeholder)
 
 # ---------------------------------------------------------------- halves
 HALF_W, HALF_L, T = 186.0, 286.0, 18.0     # one half: across (X) x along (Y) x thick
@@ -23,7 +24,11 @@ CORNER_R = 8.0                 # outer corners only (the hinge side stays square
 RIM_OUT, RIM_IN = 12.0, 9.0    # outer rims (front, back, outer side) / inner rim at the hinge (bar = 2 x RIM_IN)
 POCKET = 10.0                  # field depth below the rim
 POCKET_R = TOOL_D / 2          # the field pocket's inside corners (end mill radius)
-INLAY_D = 1.5                  # point inlay depth
+INLAY_D = 1.5                  # point inlay depth (below the finished field floor)
+INLAY_FIT = 0.08               # each piece is this much smaller than its pocket, all round (glue line)
+INLAY_STOCK = 3.0              # inlay wood thickness: the pieces stand proud, then the field floor is faced flush
+FACE = 0.5                     # field pocketed this much shallow first; the facing pass after glue-up takes it off
+SHEET_GAP = TOOL_D + 1.0       # between pieces on an inlay sheet: the outline tool + 1 mm
 N_PTS = 6
 FIELD_W = HALF_W - RIM_OUT - RIM_IN
 FIELD_L = HALF_L - 2 * RIM_OUT
@@ -51,13 +56,26 @@ def point_x(i):
     return RIM_IN + PT_W * (i + 0.5)
 
 
-def triangle(x, front):
+def point_face(x=0.0, front=True):
+    """A point's outline (the pocket): base on the field edge, every corner rounded to the inlay end mill."""
     y0 = -(HALF_L / 2 - RIM_OUT) if front else HALF_L / 2 - RIM_OUT
     s = 1 if front else -1
-    tip = (x, y0 + s * PT_LEN)
-    face = Polygon((x - PT_BASE / 2, y0 - s * 0.01), (x + PT_BASE / 2, y0 - s * 0.01), tip, align=None)
-    face = fillet(face.vertices().sort_by_distance(Vector(*tip, 0))[:1], TIP_R)
-    return Pos(0, 0, FIELD_Z - INLAY_D) * extrude(face, INLAY_D)
+    face = Polygon((x - PT_BASE / 2, y0), (x + PT_BASE / 2, y0), (x, y0 + s * PT_LEN), align=None)
+    return fillet(face.vertices(), TIP_R)
+
+
+def triangle(x, front):
+    """The pocket for a point, below the finished field floor."""
+    return Pos(0, 0, FIELD_Z - INLAY_D) * extrude(point_face(x, front), INLAY_D)
+
+
+def inlay_piece_face(x=0.0, front=True):
+    return offset(point_face(x, front), -INLAY_FIT, kind=Kind.ARC)
+
+
+def inlay_piece(x, front):
+    """A fitted piece in its pocket, as finished (faced flush with the field floor)."""
+    return Pos(0, 0, FIELD_Z - INLAY_D) * extrude(inlay_piece_face(x, front), INLAY_D)
 
 
 def tray_right():
@@ -81,9 +99,20 @@ def inlays_right():
     """Point inlays, colour 0 / 1 alternating (across the board the colours swap)."""
     out = {}
     for i in range(N_PTS):
-        out[f"inlay_f{i}"] = (triangle(point_x(i), True), i % 2)
-        out[f"inlay_b{i}"] = (triangle(point_x(i), False), (i + 1) % 2)
+        out[f"inlay_f{i}"] = (inlay_piece(point_x(i), True), i % 2)
+        out[f"inlay_b{i}"] = (inlay_piece(point_x(i), False), (i + 1) % 2)
     return out
+
+
+def inlay_sheet():
+    """One wood's 12 pieces nested on a blank, alternately up and down, SHEET_GAP apart (outline faces, z = 0).
+    Both woods need the same 12 shapes (all points are the same), so one sheet layout serves both."""
+    face = Pos(0, HALF_L / 2 - RIM_OUT - PT_LEN / 2) * inlay_piece_face(0, True)   # centred on the sharp triangle
+                                                               # (not the rounded tip): flipped, the sides stay in line
+    half = atan(PT_BASE / 2 / PT_LEN)                          # half the tip angle
+    dx = PT_BASE / 2 + SHEET_GAP / cos(half)                   # antiparallel neighbours: slanted sides SHEET_GAP apart
+    pieces = [Pos(k * dx, 0) * (face if k % 2 == 0 else Rot(0, 0, 180) * face) for k in range(2 * N_PTS)]
+    return pieces
 
 
 def hardware_right():

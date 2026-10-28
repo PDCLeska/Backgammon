@@ -69,6 +69,7 @@
       <button id="play" class="primary">▶ Open / close</button><button id="open">Open</button><button id="closed">Closed</button>
     </div>
     <label class="chk" style="margin-top:6px"><input id="chk" type="checkbox" checked> Checkers + dice (starting position; hidden while folding)</label>
+    <label class="chk"><input id="sheet" type="checkbox"> Inlay cutting sheet (in front of the board)</label>
 
     <h2>View</h2>
     <div class="row">
@@ -211,7 +212,7 @@ function applyToggles() {
   const n = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, -1] }[ax].map((v) => v * flip);
   clipPlane.normal.set(...n); clipPlane.constant = -pos * (n[0] + n[1] + n[2]);
   for (const [name, o] of Object.entries(meshes)) {
-    o.mesh.visible = !hidden.has(name) && (!o.info.checker || ($("chk").checked && fold < 1));
+    o.mesh.visible = !hidden.has(name) && (!o.info.checker || ($("chk").checked && fold < 1)) && (!o.info.sheet || $("sheet").checked);
     o.mesh.material.color.set(metal && o.info.metal ? "#e01e1e" : o.info.color);
     o.mesh.material.clippingPlanes = clip ? [clipPlane] : [];
     o.edges.material.clippingPlanes = clip ? [clipPlane] : [];
@@ -276,7 +277,7 @@ $("play").onclick = () => { if (!playing) { dir = fold >= 90 ? -1 : 1; } playing
 $("open").onclick = () => { playing = false; fold = 0; update(); };
 $("closed").onclick = () => { playing = false; fold = 180; update(); };
 document.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => setView(b.dataset.view)));
-["chk", "bed", "edges", "metal", "clip", "clipAxis", "clipPos"].forEach((id) => ($(id).oninput = () => { if (id === "clipPos") $("clip").checked = true; applyToggles(); }));
+["chk", "sheet", "bed", "edges", "metal", "clip", "clipAxis", "clipPos"].forEach((id) => ($(id).oninput = () => { if (id === "clipPos") $("clip").checked = true; applyToggles(); }));
 $("clipFlip").onclick = (e) => { e.target.dataset.on = e.target.dataset.on === "1" ? "0" : "1"; applyToggles(); };
 $("allOn").onclick = () => { hidden.clear(); buildPartsPanel(); applyToggles(); };
 $("woodOnly").onclick = () => { hidden.clear();

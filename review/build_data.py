@@ -47,6 +47,15 @@ def main():
             info[n] = dict(label=lab, color=col, side=side, group=GROUP.get(key, key), checker=n in C,
                            metal=key in ("leaf", "barrel", "mag"), valid=s.is_valid,
                            size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
+        from build123d import Pos, extrude
+        for k, f in enumerate(bd.inlay_sheet()):          # the cutting sheet, laid out in front of the board
+            s = Pos(-110, -bd.HALF_L / 2 - 90, 0) * extrude(f, bd.INLAY_STOCK)
+            export_stl(s, os.path.join(DATA, f"sheet{k:02d}.stl"), tolerance=0.03, angular_tolerance=0.2)
+            bb = s.bounding_box()
+            info[f"sheet{k:02d}"] = dict(label=f"Inlay cutting sheet (12 pieces, {bd.INLAY_STOCK:.0f} mm; cut once per wood)",
+                                         color="#e8d3a8", side="S", group="sheet", sheet=True,
+                                         checker=False, metal=False, valid=s.is_valid,
+                                         size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
         kin = dict(T=bd.T, W=bd.HALF_W, L=bd.HALF_L, cx=bd.CARVERA_X, cy=bd.CARVERA_Y)
         model = dict(version=version, built=time.time(), build_seconds=round(time.time() - t0, 1), parts=info, kin=kin,
                      params=dict(kv=[["Open", f"{2 * bd.HALF_W:.0f} × {bd.HALF_L:.0f} mm"],
@@ -54,6 +63,7 @@ def main():
                                      ["Half", f"{bd.HALF_W:.0f} × {bd.HALF_L:.0f} × {bd.T:.0f} (bed {bd.CARVERA_X:.0f} × {bd.CARVERA_Y:.0f})"],
                                      ["Field", f"{bd.FIELD_W:.0f} × {bd.FIELD_L:.0f}, {bd.POCKET:.0f} deep"],
                                      ["Points", f"{bd.PT_W:.1f} pitch, {bd.PT_LEN:.0f} long, inlay {bd.INLAY_D} deep"],
+                                     ["Inlays", f"12 + 12 from {bd.INLAY_STOCK:.0f} mm stock, {bd.INLAY_FIT} gap, corners r {bd.TIP_R}"],
                                      ["Checkers", f"Ø{bd.CHK_D:.0f} × {bd.CHK_T:.0f} mm"],
                                      ["Bar", f"{2 * bd.RIM_IN:.0f} mm (the two inner rims)"]]))
         write("model.json", model)

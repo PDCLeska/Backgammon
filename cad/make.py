@@ -23,9 +23,10 @@ def hit(a, b):
 
 
 def _skip(a, b):
-    """Pairs that touch by design: inlays / leaves / magnets in their own tray, the knuckles in their coves."""
+    """Pairs that touch by design: leaves / magnets in their own tray, the knuckles in their coves.
+    (Inlays are not skipped: each piece must sit in its pocket with the glue gap all round.)"""
     for x, y in ((a, b), (b, a)):
-        if x.startswith(("inlay", "leaf", "mag")) and y.startswith("tray") and x[-1] == y[-1]:
+        if x.startswith(("leaf", "mag")) and y.startswith("tray") and x[-1] == y[-1]:
             return True
         if x.startswith("barrel") and y.startswith("leaf") and x[-1] == y[-3]:
             return True                            # the knuckle wraps its leaves
@@ -62,6 +63,25 @@ def check(P=None, C=None):
     ok &= floor >= 5
     print(f"  wood under the inlays {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")
 
+    print("Inlays (%d light + %d dark, %.1f deep, %.2f glue gap all round, cut from %.0f mm stock)" % (2 * bd.N_PTS, 2 * bd.N_PTS, bd.INLAY_D, bd.INLAY_FIT, bd.INLAY_STOCK))
+    pocket, piece = bd.point_face(), bd.inlay_piece_face()
+    gap = (pocket.area - piece.area) / sum(e.length for e in pocket.edges())     # mean gap all round
+    pb = piece.bounding_box().size
+    print(f"  piece {pb.X:.2f} x {pb.Y:.2f} (pocket {pocket.bounding_box().size.X:.2f} x {pocket.bounding_box().size.Y:.2f}), "
+          f"corners r {bd.TIP_R - bd.INLAY_FIT:.2f} (pocket r {bd.TIP_R:.2f} = the {bd.INLAY_TOOL_D:.1f} mm end mill), gap {gap:.2f}")
+    proud = bd.INLAY_STOCK - bd.INLAY_D - bd.FACE
+    ok &= proud >= 0.3
+    print(f"  field first cut {bd.FACE:.1f} shallow, pockets {bd.INLAY_D + bd.FACE:.1f} below that; glued in, a piece stands {proud:.1f} proud; "
+          f"the facing pass (field to its full {bd.POCKET:.0f} mm) takes {bd.FACE:.1f} of floor + all of that  {'ok' if proud >= 0.3 else 'STOCK TOO THIN'}")
+    sheet = bd.inlay_sheet()
+    clash = [k for k in range(len(sheet) - 1) if (offset(sheet[k], bd.SHEET_GAP / 2 - 0.01, kind=Kind.ARC) & offset(sheet[k + 1], bd.SHEET_GAP / 2 - 0.01, kind=Kind.ARC)).area > 0.001]
+    sb = Compound(sheet).bounding_box().size
+    need = sorted([sb.X + bd.TOOL_D, sb.Y + bd.TOOL_D]); room = sorted([bd.CARVERA_X, bd.CARVERA_Y])
+    sfit = need[0] <= room[0] and need[1] <= room[1] and not clash
+    ok &= sfit
+    print(f"  sheet per wood: 12 pieces nested in {sb.X:.0f} x {sb.Y:.0f} (blank {sb.X + 2 * bd.SHEET_GAP:.0f} x {sb.Y + 2 * bd.SHEET_GAP:.0f} x {bd.INLAY_STOCK:.0f}), "
+          f"{bd.SHEET_GAP:.1f} between pieces  {'ok' if sfit else 'PROBLEM: ' + ('pieces too close ' + str(clash) if clash else 'too big for the bed')}")
+
     hits = []
     for (a, (sa, *_)), (b, (sb, *_)) in itertools.combinations({**P, **C}.items(), 2):
         if not _skip(a, b) and (v := hit(sa, sb)):
@@ -88,14 +108,22 @@ def export():
     out = os.path.join(ROOT, "export")
     os.makedirs(out, exist_ok=True)
     P = bd.build()
-    groups = {"half_right": [P["tray_R"][0]], "half_left": [P["tray_L"][0]],
-              "inlays_light": [s for n, (s, _, c) in P.items() if c == "inlay0"],
-              "inlays_dark": [s for n, (s, _, c) in P.items() if c == "inlay1"], "checker": [bd.checker()]}
+    for f in ("bg_inlays_light.step", "bg_inlays_light.stl", "bg_inlays_dark.step", "bg_inlays_dark.stl"):
+        if os.path.exists(os.path.join(out, f)):
+            os.remove(os.path.join(out, f))      # replaced by the nested sheet
+    sheet = bd.inlay_sheet()
+    groups = {"half_right": [P["tray_R"][0]], "half_left": [P["tray_L"][0]], "checker": [bd.checker()],
+              "inlay_sheet": [extrude(f, bd.INLAY_STOCK) for f in sheet]}
     for name, shapes in groups.items():
         c = Compound(shapes)
         export_step(c, os.path.join(out, f"bg_{name}.step"))
         export_stl(c, os.path.join(out, f"bg_{name}.stl"), tolerance=0.02)
         print("  export/bg_%s.step / .stl" % name)
+    dxf = ExportDXF()                            # the same sheet as 2D outlines (cut once in each inlay wood)
+    for f in sheet:
+        dxf.add_shape(f.faces()[0].outer_wire())
+    dxf.write(os.path.join(out, "bg_inlay_sheet.dxf"))
+    print("  export/bg_inlay_sheet.dxf (12 outlines; cut it once in each inlay wood)")
 
 
 if __name__ == "__main__":
