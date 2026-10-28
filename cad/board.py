@@ -38,7 +38,10 @@ PT_LEN = 112.0                 # point length (4.3 checkers)
 TIP_R = INLAY_TOOL_D / 2
 
 # ---------------------------------------------------------------- checkers, dice
-CHK_D, CHK_T, CHK_CH = 26.0, 6.0, 0.8
+STACK = 6                      # checkers in a row on one point (Amir: 6, with a small space left in the middle)
+MID_SPACE = 10.0               # between two full rows meeting in the middle of the field
+CHK_D = (FIELD_L - MID_SPACE) / 2 / STACK   # 21.0
+CHK_T, CHK_CH = 6.0, 0.8
 DIE = 12.0
 
 # ---------------------------------------------------------------- hardware (placeholders)
@@ -178,7 +181,7 @@ def checkers():
         for n, count in pts.items():
             x, y0, s = point_place(n)
             for j in range(count):
-                out[f"chk_{colour}{k:02d}"] = (Pos(x, y0 + s * (CHK_D / 2 + (j % 5) * CHK_D), FIELD_Z + CHK_T / 2 + (j // 5) * CHK_T) * c,
+                out[f"chk_{colour}{k:02d}"] = (Pos(x, y0 + s * (CHK_D / 2 + (j % STACK) * CHK_D), FIELD_Z + CHK_T / 2 + (j // STACK) * CHK_T) * c,
                                                "R" if x > 0 else "L", colour)
                 k += 1
     die = fillet(Box(DIE, DIE, DIE).edges(), 1.2)

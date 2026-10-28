@@ -57,8 +57,11 @@ def check(P=None, C=None):
     gap = bd.PT_W - bd.CHK_D
     ok &= gap >= 1.0
     print(f"  point pitch {bd.PT_W:.1f}, checker {bd.CHK_D:.0f}: {gap:.1f} mm between checkers on neighbouring points  {'ok' if gap >= 1 else 'TOO TIGHT'}")
-    stack = 5 * bd.CHK_D
-    print(f"  5 checkers on a point reach {stack:.0f} of the {bd.FIELD_L / 2:.0f} mm to the middle  {'ok' if stack <= bd.FIELD_L / 2 else 'OVERLAP'}")
+    stack = bd.STACK * bd.CHK_D
+    mid = bd.FIELD_L - 2 * stack
+    ok &= mid >= 5
+    print(f"  {bd.STACK} checkers on a point reach {stack:.0f} of the {bd.FIELD_L / 2:.1f} mm to the middle: "
+          f"{mid:.0f} mm between two full rows  {'ok' if mid >= 5 else 'NO SPACE'}")
     floor = bd.FIELD_Z - bd.INLAY_D
     ok &= floor >= 5
     print(f"  wood under the inlays {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")

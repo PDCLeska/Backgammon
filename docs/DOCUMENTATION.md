@@ -37,7 +37,7 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 
 ### 2.1 Layout
 Open board flat, white at the front. Each half has 12 points (6 front, 6 back); the two inner rims meet at the hinge
-and form the bar (18 mm). Point pitch 27.5 mm, 112 long; checkers 26 x 6; a 38 mm strip across the middle for the dice.
+and form the bar (18 mm). Point pitch 27.5 mm, 112 long; checkers 21 x 6 (6 in a row reach 126 of the 131 mm to the middle: 10 mm between two full rows); a 38 mm strip across the middle for the dice.
 Closed, the fields face each other: 20 mm inside, the checkers and dice travel in it.
 
 ### 2.2 How it is made (all from the top face, no flipping)
@@ -68,4 +68,4 @@ Closed, the fields face each other: 20 mm inside, the checkers and dice travel i
 - 2026-10-28: v0 draft (this file).
 - 2026-10-28 (Amir): no storage pockets (no room at this size: the checkers travel loose in the closed box); points
   as wood inlays in two woods on a board of a third. Then: walnut board, maple + padauk points. Bug fixed: the back
-  row's point pockets were cut 1.5 mm too deep (hidden under the floor); `check` now tests every inlay's depth.
+  row's point pockets were cut 1.5 mm too deep (hidden under the floor); `check` now tests every inlay's depth. Checkers 26 -> 21 mm: 6 fit on a point.

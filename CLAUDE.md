@@ -14,7 +14,7 @@ cheap stock (pine / MDF) first. Start the next session from `docs/DOCUMENTATION.
 - Two halves, one solid tray each (186 x 286 x 18), field pocketed 10 deep, points inlaid 1.5 deep, butt hinges
   recessed into the inner rims (all milled from the top face), magnets in the outer rims. Open 372 x 286, closed
   186 x 286 x 36 (checkers and dice inside).
-- Checkers 26 x 6 (travel size: a full-size board does not fit the bed in one piece per half).
+- Checkers 21 x 6 (Amir, 2026-10-28: 6 in a row on a point, 10 mm left in the middle between two full rows).
 - Amir (2026-10-28): **points are wood inlays**, one wood for the board, two others for the points; **no storage
   pockets** (no room at this size). Inlay order and the cutting sheet: docs 2.2.
 - Amir (2026-10-28): **walnut board, maple + padauk points.**
