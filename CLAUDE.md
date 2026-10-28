@@ -20,9 +20,12 @@ cheap stock (pine / MDF) first. Start the next session from `docs/DOCUMENTATION.
 - Amir (2026-10-28): **walnut board, epoxy points** (turquoise + deep blue, V-carved pockets, sharp tips; two pours,
   faced flush with the O-flute). Look from his reference photo: turquoise rim line, rim diamonds, chamfered edges.
   Process: docs 2.2; tools: docs 2.5.
+- Amir (2026-10-28): the back engraved first (one flip): sea-floor contour map, Saronic Gulf to Syros, across both
+  backs, no route (`art/topo.py`). Then the face side in one clamping, blue pour first, outline last.
 
 ## CAD
 - Env: `C:\Users\leska\cadenv` (build123d). `cad\board.py` = model, `cad\make.py check export`.
+- Back map: `art/topo.py` (GMRT data -> contours -> `art/back_map.json`, preview png, `export/bg_back_*.dxf`).
 - Viewer: `review\serve.py --port=8771` -> http://localhost:8771/review/ (rebuilds on save; fold slider, Carvera bed outline).
 - Run `check` before handing over any geometry change; say which files changed.
 - Bought-part sizes (hinges, magnets) are placeholders until chosen / measured: docs "Missing info".

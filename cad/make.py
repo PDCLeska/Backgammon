@@ -62,9 +62,10 @@ def check(P=None, C=None):
     ok &= mid >= 5
     print(f"  {bd.STACK} checkers on a point reach {stack:.0f} of the {bd.FIELD_L / 2:.1f} mm to the middle: "
           f"{mid:.0f} mm between two full rows  {'ok' if mid >= 5 else 'NO SPACE'}")
-    floor = bd.FIELD_Z - bd.D_FIN
+    floor = bd.FIELD_Z - bd.D_FIN - bd.ENGRAVE_D
     ok &= floor >= 5
-    print(f"  wood under the points {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")
+    print(f"  wood under the points {floor:.1f} mm (with the {bd.ENGRAVE_D} mm back engraving), under the magnets {bd.T - bd.MAG_T - bd.ENGRAVE_D:.1f} mm"
+          f"  {'ok' if floor >= 5 else 'TOO THIN'}")
 
     print("Epoxy points (12 turquoise + 12 deep blue, V-carved with the %.0f deg bit, sharp tips)" % bd.VBIT_ANGLE)
     reach = bd.VBIT_D / 2 / bd.VBIT_K

@@ -11,8 +11,9 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 |---|---|
 | Board v0 | Draft CAD (`cad/board.py`), checks pass. Walnut halves, epoxy points (turquoise + deep blue), checkers 21 x 6. |
 | Points | **Epoxy fill** (Amir): V-carved pockets (90 deg bit, sharp tips), two epoxy colours, faced flush (2.2). Look from Amir's photo: a turquoise line round the field on the rim, a diamond on each outer rim, chamfered edges. |
-| Viewer | `review/serve.py --port=8771` -> http://localhost:8771/review/ (fold slider, Carvera bed outline, checks). |
-| Cut files | `make.py export` -> `export/`: halves, checker (STEP / STL); `bg_points_left/right.dxf` (point, rim line and diamond outlines, a layer per colour). No toolpaths yet. |
+| Back | **Sea-floor contour map** engraved across both backs (Amir's photo): Saronic Gulf to Syros, coast + every 100 m, 1:442,000, from GMRT data (`art/topo.py`). No route (Amir). |
+| Viewer | `review/serve.py --port=8771` -> http://localhost:8771/review/ (fold slider, Carvera bed outline, back view + map, checks). |
+| Cut files | `make.py export` -> `export/`: halves, checker (STEP / STL); `bg_points_left/right.dxf` (point, rim line and diamond outlines, a layer per colour); `bg_back_left/right.dxf` (the map, per half). No toolpaths yet. |
 | Tools | Ordered from Makera (2.5). |
 
 ### Next steps
@@ -26,8 +27,10 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | What | For | Value now |
 |---|---|---|
 | Carvera Air work area: 300 x 200 (retailers) or 360 x 240 (Makera page) | Half size | 300 x 200 |
+| The bed's real size, and where clamps can go | Blank size (extra wood for the clamps) | unknown: with 300 x 200 travel the tool has only ~5 mm to spare round a half |
+| Engraving bit for the map (from the bit set: angle, tip) | Line width | ~0.3 mm lines, 0.4 deep |
 | 90 deg chamfering bit: cutting diameter, real tip | `VBIT_D`, inlay depths | 6 mm (3 mm reach) |
-| Walnut: thickness after flattening, blank size | `T` | 18.5 mm (faced to 18 after the pour), 2 blanks ~200 x 300 |
+| Walnut: thickness after flattening, blank size | `T` | 18.5 mm (faced to 18 after the pour), 2 blanks: half + extra wood for the clamps |
 | Epoxy: product, colours (turquoise, deep blue pigment / mica) | Pour depth | 2.5 mm pours (coating / tabletop epoxy is fine) |
 | Hinges: a small brass butt hinge (length, leaf width, leaf thickness, knuckle) | Mortises | 30 x 12 x 1, knuckle 4 |
 | Magnets | Rim pockets | 6 x 3 discs: Amir has them (measure one: diameter for the press fit) |
@@ -42,8 +45,17 @@ and form the bar (18 mm). Point pitch 27.5 mm, 112 long, base 1 mm off the field
 reach 126 of the 131 mm to the middle: 10 mm between two full rows); a 38 mm strip across the middle for the dice.
 Closed, the fields face each other: 20 mm inside, the checkers and dice travel in it.
 
-### 2.2 How it is made (the halves all from the top face, no flipping)
-- Each half: one walnut blank, outline cut with a 1/8" end mill (half 190 x 286, tool path 289 x 193: 7 mm to spare on the bed).
+### 2.2 How it is made (back first, then one flip; the face side in one clamping)
+- Each half: one walnut blank, outline cut last with a 1/8" end mill (half 190 x 286, tool path 289 x 193: 7 mm to
+  spare on a 300 x 200 bed).
+- **Back: sea-floor contour map** (Amir's photo: ocean topography). `art/topo.py` makes it from GMRT depth data
+  (gmrt.org, ~120 m grid, `art/gmrt_aegean.asc`, not in git: the download URL is in the script): the Saronic Gulf
+  (Aegina, Attica) to the Cyclades (Kea, Kythnos, Syros, Tinos), the coast + a line every 100 m of depth, smoothed;
+  one map running across both backs (356 x 262, 12 mm margin; it carries on over the hinge). Closed, the lid (the right
+  half's back) shows the Saronic Gulf, the underside the Cyclades. Engraved ~0.4 deep with a fine V engraving bit
+  (~0.3 mm lines); 0.4% of the line length runs closer than 0.6 mm to the next line (steep slopes: they merge into
+  one heavier line there). `bg_back_right.dxf` / `bg_back_left.dxf`: each half's lines in its own frame, back up.
+  Preview: `art/back_map.png`; in the viewer, the Back button.
 - Field pocket 10 deep (1.6 mm inside corners).
 - **Points: epoxy fill** (Amir). An end mill can't cut a sharp inside corner; the 90 deg V-bit can, so every pocket is
   V-carved (45 deg walls, flat bottom cleared) and the tips stay sharp. The look follows Amir's reference photo:
@@ -55,18 +67,31 @@ Closed, the fields face each other: 20 mm inside, the checkers and dice travel i
   - A turquoise **diamond** (12 x 6, V-carved 1.5) in the middle of each outer side rim.
   - Outer top edges chamfered 1.5 (the hinge side square).
   - `bg_points_right.dxf` / `bg_points_left.dxf`: the outlines for the V-carve toolpaths, layers `turquoise` / `blue`.
-- Two pours, because two point pockets are only 0.5 mm apart at the first floor (1.5 when finished): one colour would
-  run into the next pocket.
-- Order, one half (blank 18.5 thick; leave it clamped from step 1 to 6, don't lose the zero):
-  1. Cut the outline (chamfer last), the field 9.5 deep (0.5 shallow).
-  2. V-carve the 12 turquoise pockets, the rim line and the diamond (all from 0.5 above their finished surface).
-  3. Seal the walnut (thin shellac or a thin epoxy coat brushed in; stops bleed and bubbles). Pour turquoise a little
-     proud (0.3-0.5 mm), torch / heat-gun the bubbles, cure (as the product says, often 24-72 h).
-  4. V-carve the 6 blue pockets (the cured turquoise overflow is cut away with them), seal, pour blue, cure.
-  5. Face with the Spiral 'O' bit: the field to its full 10 mm, the rim top to 18 (walnut + epoxy in one pass, light last
+- Two pours, and each colour's pockets are cut just before its own pour: two point pockets are only 0.5 mm apart at
+  the first floor (1.5 when finished), so liquid epoxy would creep into the other colour's open pocket. Cut after
+  the first pour has cured, the second colour's pockets take any spill away with the walnut.
+- Holding (Amir: keep it scratch-free, load it as few times as possible): clamps and the L bracket only on extra wood
+  round the half (cut away with the outline), masking tape or cork under the jaws; painter's tape + CA glue between the
+  blank and the spoil board as well; vacuum the bed and the blank first (a chip underneath dents the walnut); tape the
+  spoil board round the blank (epoxy running down would glue it to the bed). How much extra wood fits: measure the
+  bed (missing info).
+- Order, one half (blank 18.5 thick, edges square):
+  1. **Back up**: push the blank into the L bracket corner, mark which edge is against it. Engrave the map.
+  2. **Flip** end over end about the long edge on the bracket (the same edge back against it), painter's tape under
+     the engraved back. From here to step 9 the blank stays clamped: the epoxy cures on the machine, the zero stays.
+  3. Field pocket 9.5 deep (0.5 shallow).
+  4. V-carve the 6 blue points.
+  5. Seal the walnut (thin shellac, or a thin epoxy coat brushed in: stops bleed and bubbles). Pour blue a little proud
+     (0.3-0.5 mm), heat-gun the bubbles, cure (as the product says, often 24-72 h).
+  6. V-carve the 6 turquoise points, the rim line and the diamond (all from 0.5 above their finished surface).
+  7. Seal, pour turquoise, cure.
+  8. Face with the Spiral 'O' bit: the field to its full 10 mm, the top to 18 (walnut + epoxy in one pass, light last
      pass 0.1-0.2, sharp bit). The 6 mm bit can't reach the field's corners (r3 against the r1.6 left by the 1/8"
      bit), and 4 points per half reach into them (`make.py check`): a 1/8" clean-up pass round the field corners.
-  6. Hinge mortises, magnet holes. Sand (to 320-400 on the epoxy), oil the walnut.
+     Then the hinge mortises and magnet holes.
+  9. **Outline last**, with small tabs; chamfer the outer top edges.
+  10. Off the machine: cut the tabs, sand (320-400 on the epoxy), oil. Press in the magnets, fit the hinges. Keep the
+      finished halves covered. The other half the same, mirrored.
 - Hinges: the leaves recessed flush into both inner rims, the knuckle in a half-round cove on the hinge line; open, the
   board lies flat; closed, the rims meet face to face (checked: nothing collides at 90, 135, 180 deg).
 - Magnets: 2 per half in the outer rims, outboard of the rim line, pressed + glued; they meet when closed.
@@ -75,7 +100,8 @@ Closed, the fields face each other: 20 mm inside, the checkers and dice travel i
 - **Size.** Travel size: each half one piece on the bed. Full size (38-40 mm checkers, open about 500 x 400) means
   each half glued up from 2 milled pieces (or a frame + panels).
 - **Checkers:** milled from the same woods (15 + 15), or bought.
-- Extras: dice cups, a doubling cube, a handle / clasp, engraving on the lid.
+- Extras: dice cups, a doubling cube, a handle / clasp.
+- The map lines: plain engraved, or filled (dark / blue epoxy; the back then needs a 0.5 facing pass, blank 19).
 
 ### 2.4 History
 - 2026-10-28: v0 draft.
@@ -86,6 +112,9 @@ Closed, the fields face each other: 20 mm inside, the checkers and dice travel i
 - 2026-10-28 (Amir): walnut + **epoxy fill** instead of maple / padauk plugs (the plug sheet dropped). His reference
   photo: turquoise + deep blue points, a turquoise rim line, rim diamonds, chamfered edges. Magnets 8 -> 6 mm. Amir: the line
   3 mm off the field wall (not 1.2) so it can't break: outer side rim 12 -> 16, half 186 -> 190 wide.
+- 2026-10-28 (Amir): magnets 6 x 3 (he has them). Order: each colour's pockets cut just before its pour, blue first;
+  the outline last; one clamping for the face side (scratches). The back engraved first (one flip): a sea-floor
+  contour map, Saronic Gulf to Syros (his photo + map); the Aegina -> Syros route tried, then dropped (Amir).
 
 ### 2.5 Tools and supplies (Amir's list)
 From Makera: Essential Milling Bit Set (Standard, 26 bits: flat, ball nose, engraving, 2 x 90 deg V), 6 mm spindle
@@ -93,4 +122,4 @@ collet, 90 deg chamfering bit (6 mm shank) x 2 (the points' V-bit: the set's sma
 'O' single-flute bit (6 mm shank, facing after the pour), thick L bracket + side clamp set (holding the 18-20 mm
 blanks), 2 mm MDF spoil boards, double-sided tape. Later: dust extraction (Cyclone Lite or a shop vac).
 Elsewhere: walnut; pine / MDF for tests; epoxy (coating / tabletop, UV-stable) + turquoise and deep blue pigment
-(mica powder), mixing cups, sticks, a heat gun or torch, shellac (sealer); sandpaper 120-400; Danish oil or wax; 2 small brass hinges + magnets; dice and cups.
+(mica powder), mixing cups, sticks, a heat gun or torch, shellac (sealer); painter's tape + CA glue (holding); sandpaper 120-400; Danish oil or wax; 2 small brass hinges + magnets; dice and cups.

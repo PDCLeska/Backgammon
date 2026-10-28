@@ -38,6 +38,7 @@ LINE_W, LINE_GAP = 1.6, 3.0    # rim line: width (V-groove), walnut between it a
                                # away from the wall so that strip can't break off)
 LINE_D = LINE_W / 2 / VBIT_K - 0.05      # its depth (a hair of flat bottom left)
 DIA_L, DIA_W, DIA_D = 12.0, 6.0, 1.5     # rim diamond: along the rim, across, V-carved depth
+ENGRAVE_D = 0.4                # the back: sea-floor contour map engraved across both halves (art/topo.py)
 EDGE_CH = 1.5                  # chamfer on the outer top edges (the hinge side stays square)
 N_PTS = 6
 FIELD_W = HALF_W - RIM_SIDE - RIM_IN

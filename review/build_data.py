@@ -57,6 +57,11 @@ def main():
                                      ["Epoxy", f"V-carved with the {bd.VBIT_ANGLE:.0f}° bit; rim line {bd.LINE_W} wide, diamonds {bd.DIA_L:.0f} × {bd.DIA_W:.0f}"],
                                      ["Checkers", f"Ø{bd.CHK_D:.0f} × {bd.CHK_T:.0f} mm"],
                                      ["Bar", f"{2 * bd.RIM_IN:.0f} mm (the two inner rims)"]]))
+        bm = os.path.join(ROOT, "art", "back_map.json")      # the back engraving: lines on each half's bottom face
+        if os.path.exists(bm):
+            b = json.load(open(bm))
+            model["back"] = dict(R=b["halves"]["R"], L=b["halves"]["L"], info=b["info"])
+            model["params"]["kv"].append(["Back", f"sea-floor map 1:{b['info']['scale']:,}, {bd.ENGRAVE_D} mm engraved"])
         write("model.json", model)
         write("collisions.json", dict(version=version, state="running"))
         write("status.json", dict(state="ok", version=version, seconds=model["build_seconds"]))
