@@ -11,8 +11,8 @@ DATA = os.path.join(HERE, "data")
 sys.path[:0] = [os.path.join(ROOT, "cad"), ROOT]
 
 # colour key -> (colour, viewer group label)
-LOOK = dict(tray=("#5b3a24", "2 halves (walnut, 18 mm)"), inlay0=("#e8d3a8", "Points: light inlay (maple)"),
-            inlay1=("#8a2f1f", "Points: dark inlay (padauk / cherry)"), leaf=("#c9a54a", "2 butt hinges (brass)"),
+LOOK = dict(tray=("#5b3a24", "2 halves (walnut, 18 mm)"), inlay0=("#e9d6b0", "12 points: maple inlay"),
+            inlay1=("#c4512a", "12 points: padauk inlay"), leaf=("#c9a54a", "2 butt hinges (brass)"),
             barrel=("#c9a54a", "2 butt hinges (brass)"), mag=("#c7ccd4", "4 magnets (8 x 3)"),
             white=("#f1ead9", "15 light checkers"), black=("#2a2522", "15 dark checkers"), die=("#fbfaf6", "2 dice"))
 GROUP = dict(barrel="leaf")
@@ -53,7 +53,7 @@ def main():
             export_stl(s, os.path.join(DATA, f"sheet{k:02d}.stl"), tolerance=0.03, angular_tolerance=0.2)
             bb = s.bounding_box()
             info[f"sheet{k:02d}"] = dict(label=f"Inlay cutting sheet (12 pieces, {bd.INLAY_STOCK:.0f} mm; cut once per wood)",
-                                         color="#e8d3a8", side="S", group="sheet", sheet=True,
+                                         color="#e9d6b0", side="S", group="sheet", sheet=True,
                                          checker=False, metal=False, valid=s.is_valid,
                                          size=[round(bb.size.X, 1), round(bb.size.Y, 1), round(bb.size.Z, 1)])
         kin = dict(T=bd.T, W=bd.HALF_W, L=bd.HALF_L, cx=bd.CARVERA_X, cy=bd.CARVERA_Y)

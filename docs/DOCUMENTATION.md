@@ -15,7 +15,7 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Cut files | `make.py export` -> `export/bg_*.step / .stl`, `bg_inlay_sheet.dxf`. No toolpaths yet. |
 
 ### Next steps
-1. Amir decides (2.3): the three woods, size, checkers.
+1. Amir decides (2.3): size, checkers. (Woods decided: walnut, maple, padauk.)
 2. A first test cut in pine / MDF: one corner of a half (rim, field pocket, one point pocket + its piece, a hinge
    mortise, a magnet hole) to learn the Carvera and to tune `INLAY_FIT` before cutting hardwood.
 3. Toolpaths in Makera CAM, then the real halves.
@@ -28,7 +28,7 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Hinges: a small brass butt hinge (length, leaf width, leaf thickness, knuckle) | Mortises | 30 x 12 x 1, knuckle 4 |
 | Magnets | Rim pockets | 8 x 3 discs |
 | Tools Amir has (end mills, V-bits) | Inside corners, point tips | 1/8" end mill, 1 mm for the points |
-| Inlay woods: species, thickness (>= 2.8 mm) | `INLAY_STOCK`, colours | 3 mm maple + padauk |
+| Inlay wood thickness (>= 2.8 mm) | `INLAY_STOCK` | 3 mm (maple + padauk) |
 | Inlay fit on the real machine and wood | `INLAY_FIT` | 0.08 a side (test cut) |
 
 ---
@@ -59,11 +59,13 @@ Closed, the fields face each other: 20 mm inside, the checkers and dice travel i
 ### 2.3 Open choices (Amir)
 - **Size.** v0 = travel size (26 mm checkers), each half one piece on the bed. Full size (38-40 mm checkers, open about
   500 x 400) means each half glued up from 2 milled pieces (or a frame + panels).
-- **Woods:** one for the board, two for the points (decided: wood inlays). Which ones?
+- Woods (decided 2026-10-28): walnut board, maple + padauk points. Padauk dust stains maple: shellac the board
+  before the facing pass (or vacuum constantly).
 - **Checkers:** milled from the same woods (15 + 15), or bought.
 - Extras: bear-off trays, dice cups, a doubling cube, a handle / clasp, engraving on the lid.
 
 ### 2.4 History
 - 2026-10-28: v0 draft (this file).
 - 2026-10-28 (Amir): no storage pockets (no room at this size: the checkers travel loose in the closed box); points
-  as wood inlays in two woods on a board of a third.
+  as wood inlays in two woods on a board of a third. Then: walnut board, maple + padauk points. Bug fixed: the back
+  row's point pockets were cut 1.5 mm too deep (hidden under the floor); `check` now tests every inlay's depth.

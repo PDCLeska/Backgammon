@@ -60,7 +60,9 @@ def point_face(x=0.0, front=True):
     """A point's outline (the pocket): base on the field edge, every corner rounded to the inlay end mill."""
     y0 = -(HALF_L / 2 - RIM_OUT) if front else HALF_L / 2 - RIM_OUT
     s = 1 if front else -1
-    face = Polygon((x - PT_BASE / 2, y0), (x + PT_BASE / 2, y0), (x, y0 + s * PT_LEN), align=None)
+    corners = [(x - PT_BASE / 2, y0), (x + PT_BASE / 2, y0), (x, y0 + s * PT_LEN)]
+    face = Polygon(*(corners if front else corners[::-1]), align=None)   # counter-clockwise: normal up, so
+                                                                           # extrude() goes up (back row was cut downward)
     return fillet(face.vertices(), TIP_R)
 
 

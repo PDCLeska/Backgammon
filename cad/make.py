@@ -64,6 +64,12 @@ def check(P=None, C=None):
     print(f"  wood under the inlays {floor:.1f} mm, under the magnets {bd.T - bd.MAG_T:.1f} mm")
 
     print("Inlays (%d light + %d dark, %.1f deep, %.2f glue gap all round, cut from %.0f mm stock)" % (2 * bd.N_PTS, 2 * bd.N_PTS, bd.INLAY_D, bd.INLAY_FIT, bd.INLAY_STOCK))
+    lo, hi = bd.FIELD_Z - bd.INLAY_D, bd.FIELD_Z
+    wrong = [n for n, (s, _, c) in P.items() if c.startswith("inlay") and
+             (abs(s.bounding_box().min.Z - lo) > 0.01 or abs(s.bounding_box().max.Z - hi) > 0.01)]
+    ok &= not wrong
+    n_in = sum(1 for _, _, c in P.values() if c.startswith("inlay"))
+    print(f"  {n_in} pieces, all flush in the field floor (z {lo:.1f} .. {hi:.1f})" if not wrong else f"  NOT IN THE FLOOR: {wrong}")
     pocket, piece = bd.point_face(), bd.inlay_piece_face()
     gap = (pocket.area - piece.area) / sum(e.length for e in pocket.edges())     # mean gap all round
     pb = piece.bounding_box().size

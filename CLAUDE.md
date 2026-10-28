@@ -17,6 +17,7 @@ cheap stock (pine / MDF) first. Start the next session from `docs/DOCUMENTATION.
 - Checkers 26 x 6 (travel size: a full-size board does not fit the bed in one piece per half).
 - Amir (2026-10-28): **points are wood inlays**, one wood for the board, two others for the points; **no storage
   pockets** (no room at this size). Inlay order and the cutting sheet: docs 2.2.
+- Amir (2026-10-28): **walnut board, maple + padauk points.**
 
 ## CAD
 - Env: `C:\Users\leska\cadenv` (build123d). `cad\board.py` = model, `cad\make.py check export`.
