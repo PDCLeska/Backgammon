@@ -28,8 +28,8 @@ from board import (CARVERA_X, CARVERA_Y, TOOL_D, VBIT_K, VBIT_D, FILL_P, PT_EDGE
 L, W, T = 150.0, 100.0, 10.0
 
 # ---------------------------------------------------------------- pins (the kit's pins: MEASURE the diameter)
-PIN_D = 3.175                  # placeholder until measured; the hole is cut to this + PIN_FIT
-PIN_FIT = 0.05
+PIN_D = 4.0                    # the Carvera Air's own dowel pins (10 in the box, for the corner bracket): 4 mm (confirm)
+PIN_FIT = 0.0                  # 4 mm circle, cut as a 2D Pocket with the 1/8" end mill (drilling can't: bit < hole)
 PIN_X = (-62.0, 56.0)          # on the flip line, not symmetric: only the right turn fits the pins
 PIN_INTO = 1.0                 # into the 2 mm MDF spoil board (Amir has 2 mm): 1 mm left above the aluminium bed.
 SPOIL = 2.0                    # the pins only locate (tape + CA hold the blank), so 1 mm of grip is enough
@@ -155,7 +155,7 @@ def check():
     pr = (PIN_D + PIN_FIT) / 2
     out = min(abs(px) for px in PIN_X) - pr - BOARD
     edge = L / 2 - max(abs(px) for px in PIN_X) - pr
-    print(f"  {PIN_D} pins (placeholder: measure the kit's), holes {PIN_D + PIN_FIT:.2f} at x = {PIN_X[0]:+.0f} / {PIN_X[1]:+.0f}"
+    print(f"  {PIN_D} pins (the Carvera Air's kit pins), holes {PIN_D + PIN_FIT:.2f} at x = {PIN_X[0]:+.0f} / {PIN_X[1]:+.0f}"
           f" on the flip line, {PIN_INTO:.1f} into the {SPOIL:.0f} mm spoil board ({SPOIL - PIN_INTO:.1f} left above the bed)")
     ok &= SPOIL - PIN_INTO >= 0.8
     print(f"  outside the board area by {out:.1f}, blank end {edge:.1f}  {flag(out >= 5 and edge >= 5)}"); ok &= out >= 5 and edge >= 5
@@ -213,6 +213,13 @@ def export():
         msp.add_lwpolyline([(u + L / 2, v + W / 2) for u, v in l["pts"]], dxfattribs={"layer": "engrave"})
     doc.saveas(os.path.join(out, "pintest_1_back.dxf"))
 
+    # the pin holes alone (Amir makes them in the CAM): the blank outline + 2 circles, setup 1 frame
+    doc = ezdxf.new(); msp = doc.modelspace()
+    msp.add_lwpolyline(blank, close=True)
+    for px in PIN_X:
+        msp.add_circle(setup_xy(px, 0, 1), (PIN_D + PIN_FIT) / 2)
+    doc.saveas(os.path.join(out, "pintest_pins.dxf"))
+
     # setup 2: face up
     doc = ezdxf.new(); msp = doc.modelspace()
     for n in ("blank", "pins", "witness", "field", "points", "rim_line"):
@@ -236,7 +243,7 @@ def export():
                            close=True, dxfattribs={"layer": "rim_line"})
     doc.saveas(os.path.join(out, "pintest_2_face.dxf"))
     preview()
-    print("  export/pintest.step / .stl, pintest_1_back.dxf, pintest_2_face.dxf, art/pintest.png")
+    print("  export/pintest.step / .stl, pintest_pins.dxf, pintest_1_back.dxf, pintest_2_face.dxf, art/pintest.png")
 
 
 def preview():

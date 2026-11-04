@@ -195,8 +195,10 @@ engraved on the back. `cad/pintest.py check export`; picture `art/pintest.png`.
 - **Files** (origin = the blank's front-left corner as it lies, for both setups):
   `export/pintest_1_back.dxf` (layers `pins`, `witness`, `engrave`), `export/pintest_2_face.dxf` (`pins` for
   reference only, `witness`, `field`, `points`, `rim_line`), `export/pintest.step` / `.stl`.
-- **Measure first:** the blank's thickness (above 11 the windows don't meet: tell Claude), the kit pins' diameter
-  (`PIN_D`, placeholder 3.175; the hole is +0.05).
+- **Pins:** the Carvera Air's own 4 mm dowel pins (10 in the box). Holes 4.0 at X 13 and X 131, Y 50 (front-left zero),
+  the same spot in both setups. `export/pintest_pins.dxf` = the blank outline + those 2 circles only. In the CAM:
+  **2D Pocket** (not 2D Drilling: the 1/8" bit is smaller than the hole), depth = blank thickness + 1.
+- **Measure first:** the blank's thickness (above 11 the windows don't meet: tell Claude), a pin (4.0?).
 
 Order:
 1. **Spoil board** (2 mm MDF) on the bed, flat, no gap under it. It stays put until the test is done. Measure the
