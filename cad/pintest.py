@@ -7,7 +7,7 @@ board (150 x 101 x 10). Was the pin-flip test plate; Amir: "this is the coaster"
   Face (setup 2): field pocket, 6 points + the diamond + the rim line V-carved (no epoxy this time: Amir), face witness
   squares, the outline chamfered, then the outline cut through with tabs (+ tape + CA under the blank).
 
-Coaster 90 x 90 (the 110.5 design doesn't fit the 101 wide blank), corners r8, 10 thick, both edges chamfered 1.5
+Coaster 90 x 90 (the 110.5 design doesn't fit the 101 wide blank), corners r8, 10 thick, both edges chamfered 1.2
 (Amir): the back edge in setup 1, the face edge in setup 2, both with the V-bit (2D Chamfer on the outline). Points 24 wide (the board's are
 27.5: Amir chose smaller points to keep 3 a side).
 Pins: 2 holes on the flip line, outside the coaster, not the same distance from the ends, so only the right turn fits.
@@ -26,8 +26,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE, os.path.join(ROOT, "art")]
 from build123d import *
-from board import (CARVERA_X, CARVERA_Y, TOOL_D, VBIT_K, VBIT_D, FILL_P, PT_EDGE, LINE_W, LINE_GAP, LINE_D,
-                   ENGRAVE_D, DIA_L, DIA_W, DIA_D, EDGE_CH)
+from board import (CARVERA_X, CARVERA_Y, TOOL_D, VBIT_K, PT_EDGE, LINE_W, LINE_GAP, LINE_D, ENGRAVE_D, DIA_L, DIA_W)
+
+# Amir (2026-11-04): no collet change today, everything on the 1/8" collet: the V-cuts use the bit set's small 90 deg
+# V-bit (3.175 shank; cutting width ~3.175 -> reaches ~1.5), not the 6 mm chamfering bit.
+VBIT_D = 3.175
+PT_DEPTH = 1.4                 # points V-carved below the field floor (the board: 2.5 with the 6 mm bit)
+DIA_D = 1.4                    # the diamond
+EDGE_CH = 1.2                  # both edge chamfers
 
 # ---------------------------------------------------------------- blank
 L, W, T = 150.0, 101.0, 10.0       # Amir measured 150 x 101 (Makera epoxy tooling board, 10 thick: check with calipers)
@@ -50,7 +56,6 @@ POCKET = 3.0                   # field depth (holds a drip)
 POCKET_R = TOOL_D / 2
 MID = 16.0                     # between the two rows of tips: the diamond
 PT_LEN = (FIELD - 2 * PT_EDGE - MID) / 2
-PT_DEPTH = FILL_P              # V-carve depth below the field floor (the board's)
 THROUGH = 0.3                  # the outline goes this far into the spoil board
 TAB_W, TAB_H, N_TABS = 5.0, 1.5, 4    # tabs on the outline: length, height (left above the bottom), one per side
 
@@ -186,9 +191,11 @@ def check():
     ok &= ov > 0 and wo >= 3
     print("Face")
     reach = VBIT_D / 2 / VBIT_K
+    need = max(PT_DEPTH, DIA_D, EDGE_CH, LINE_D)
     print(f"  field {FIELD:.0f} square, {POCKET:.0f} deep; 6 points {PB:.1f} x {PT_LEN:.1f} V-carved {PT_DEPTH} below the floor,"
-          f" diamond {DIA_L:.0f} x {DIA_W:.0f} x {DIA_D}; V-bit reaches {reach:.1f}  {flag(max(PT_DEPTH, DIA_D) <= reach)}")
-    ok &= max(PT_DEPTH, DIA_D) <= reach
+          f" diamond {DIA_L:.0f} x {DIA_W:.0f} x {DIA_D}, chamfers {EDGE_CH}; the set's {VBIT_D} V-bit reaches {reach:.2f}"
+          f"  {flag(need <= reach - 0.1)}")
+    ok &= need <= reach - 0.1
     tips = FIELD / 2 - PT_EDGE - PT_LEN
     gap = tips - DIA_W / 2
     print(f"  diamond to the point tips {gap:.1f}  {flag(gap >= 1.5)}"); ok &= gap >= 1.5

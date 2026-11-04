@@ -182,10 +182,12 @@ The practice piece, every technique, on Makera's epoxy tooling board **150 x 101
 Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pintest.py check export`; pictures
 `art/pintest.png` (both sides), `art/pintest_setup.png` (on the bed). Amir: **2D** in Makera Studio (two DXFs, two WCS).
 
-- **Coaster 90 x 90**, corners r8, 10 thick, **both edges chamfered 1.5** (Amir: back as the face; V-bit, 2D Chamfer) (the 110.5 design doesn't fit the 101 blank).
+- **Coaster 90 x 90**, corners r8, 10 thick, **both edges chamfered 1.2** (Amir: back as the face; V-bit, 2D Chamfer) (the 110.5 design doesn't fit the 101 blank).
 - **Face:** field 72 square, 3 deep; 6 points 22.5 x 27 (24 pitch; the board's are 27.5: Amir chose smaller points to
-  keep 3 a side), V-carved 2.5 below the floor; the diamond (12 x 6, 1.5 deep); the rim line (1.6 wide, 3 off the
+  keep 3 a side), V-carved 1.4 below the floor; the diamond (12 x 6, 1.4 deep); the rim line (1.6 wide, 3 off the
   field wall). **No epoxy this time** (Amir): V-carve only.
+- **Bits: all on the 1/8" collet today** (Amir: no collet change): 1/8" end mill, the set's engraving bit, the set's
+  small 90 deg V-bit (reaches ~1.5: hence 1.4 deep V-cuts and 1.2 chamfers; the 6 mm chamfering bit is for the board).
 - **Back:** 76 mm square of open sea, no islands (Amir): south of the Saronic Gulf, 23.77 E 37.15 N, 157-1079 m deep,
   a ridge and small seamounts, a line every 100 m (32 lines), engraved 0.4 deep with the engraving bit.
 - **Pins:** the Carvera Air's own 4 mm dowel pins. Holes at **X 13 and X 131, Y 50.5** (front-left zero), the same spot
@@ -198,8 +200,8 @@ Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pin
 Files (origin = the blank's front-left corner as it lies; both setups):
 | File | Setup | Layers -> paths |
 |---|---|---|
-| `export/pintest_1_back.dxf` | WCS1, back up | `pins` -> 2D Pocket 11 deep, 1/8" end mill; `witness` -> 2D Pocket 6 deep; `engrave` -> engrave 0.4, engraving bit; `outline` -> 2D Chamfer 1.5, 90 deg V-bit (only the chamfer here, no cut through) |
-| `export/pintest_2_face.dxf` | WCS2, face up | `field` -> 2D Pocket 3; `witness` -> 2D Pocket 5; `points` -> V-carve 2.5 below the field floor (start at 3), 90 deg bit; `diamond` -> V-carve 1.5 (start at 3); `rim_line` -> V-carve (from the top); `outline` -> 2D Chamfer 1.5, then 2D Contour outside 10.3 with tabs; `pins` = reference only |
+| `export/pintest_1_back.dxf` | WCS1, back up | `pins` -> 2D Pocket 11 deep, 1/8" end mill; `witness` -> 2D Pocket 6 deep; `engrave` -> engrave 0.4, engraving bit; `outline` -> 2D Chamfer 1.2, the set's 90 deg V-bit (only the chamfer here, no cut through) |
+| `export/pintest_2_face.dxf` | WCS2, face up | `field` -> 2D Pocket 3; `witness` -> 2D Pocket 5; `points` -> V-carve 1.4 below the field floor (start at 3), the set's 90 deg V-bit; `diamond` -> V-carve 1.4 (start at 3); `rim_line` -> V-carve (from the top); `outline` -> 2D Chamfer 1.2, then 2D Contour outside 10.3 with tabs; `pins` = reference only |
 | `export/pintest_pins.dxf` | - | the blank + the 2 pin circles only |
 | `export/pintest.step` / `.stl` | - | the finished coaster, to look at (the map lines are not in it) |
 
