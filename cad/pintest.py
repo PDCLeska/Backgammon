@@ -25,7 +25,7 @@ from board import (CARVERA_X, CARVERA_Y, TOOL_D, VBIT_K, VBIT_D, FILL_P, PT_EDGE
                    LINE_W, LINE_GAP, LINE_D, ENGRAVE_D)
 
 # ---------------------------------------------------------------- blank (measure it: T sets the witness depths)
-L, W, T = 150.0, 100.0, 10.0
+L, W, T = 150.0, 101.0, 10.0       # Amir measured 150 x 101 (thickness: to measure)
 
 # ---------------------------------------------------------------- pins (the kit's pins: MEASURE the diameter)
 PIN_D = 4.0                    # the Carvera Air's own dowel pins (10 in the box, for the corner bracket): 4 mm (confirm)
