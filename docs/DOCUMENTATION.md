@@ -182,7 +182,7 @@ The practice piece, every technique, on Makera's epoxy tooling board **150 x 101
 Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pintest.py check export`; pictures
 `art/pintest.png` (both sides), `art/pintest_setup.png` (on the bed). Amir: **2D** in Makera Studio (two DXFs, two WCS).
 
-- **Coaster 90 x 90**, corners r8, 10 thick, top edge chamfered 1.5 (the 110.5 design doesn't fit the 101 blank).
+- **Coaster 90 x 90**, corners r8, 10 thick, **both edges chamfered 1.5** (Amir: back as the face; V-bit, 2D Chamfer) (the 110.5 design doesn't fit the 101 blank).
 - **Face:** field 72 square, 3 deep; 6 points 22.5 x 27 (24 pitch; the board's are 27.5: Amir chose smaller points to
   keep 3 a side), V-carved 2.5 below the floor; the diamond (12 x 6, 1.5 deep); the rim line (1.6 wide, 3 off the
   field wall). **No epoxy this time** (Amir): V-carve only.
@@ -198,7 +198,7 @@ Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pin
 Files (origin = the blank's front-left corner as it lies; both setups):
 | File | Setup | Layers -> paths |
 |---|---|---|
-| `export/pintest_1_back.dxf` | WCS1, back up | `pins` -> 2D Pocket 11 deep, 1/8" end mill; `witness` -> 2D Pocket 6 deep; `engrave` -> engrave 0.4, engraving bit; `coaster_ref` = where the coaster is (don't cut) |
+| `export/pintest_1_back.dxf` | WCS1, back up | `pins` -> 2D Pocket 11 deep, 1/8" end mill; `witness` -> 2D Pocket 6 deep; `engrave` -> engrave 0.4, engraving bit; `outline` -> 2D Chamfer 1.5, 90 deg V-bit (only the chamfer here, no cut through) |
 | `export/pintest_2_face.dxf` | WCS2, face up | `field` -> 2D Pocket 3; `witness` -> 2D Pocket 5; `points` -> V-carve 2.5 below the field floor (start at 3), 90 deg bit; `diamond` -> V-carve 1.5 (start at 3); `rim_line` -> V-carve (from the top); `outline` -> 2D Chamfer 1.5, then 2D Contour outside 10.3 with tabs; `pins` = reference only |
 | `export/pintest_pins.dxf` | - | the blank + the 2 pin circles only |
 | `export/pintest.step` / `.stl` | - | the finished coaster, to look at (the map lines are not in it) |
@@ -207,7 +207,7 @@ Order:
 1. **Spoil board** (2 mm MDF) flat on the bed, the **L bracket** at Anchor 1 (front-left) screwed through it; the far
    end held down. It stays put until the coaster is done.
 2. **Setup 1, back up:** blank into the bracket corner, painter's tape + CA. XY zero = the bracket corner (Anchor 1,
-   offset 0); Z zero on the top. Cut WCS1: pins, back witnesses (1/8" end mill), then the map (engraving bit).
+   offset 0); Z zero on the top. Cut WCS1: pins, back witnesses (1/8" end mill), the map (engraving bit), the back edge chamfer (V-bit).
 3. **Flip** front to back (about the pin line). Pins into the spoil board's holes, blank down on them and into the
    bracket corner, tape + CA again. If it won't go on the pins, it's turned the wrong way.
 4. **Setup 2, face up:** same XY zero (don't re-probe XY), new Z zero on the top. Cut WCS2: field, face witnesses

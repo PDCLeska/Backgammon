@@ -1,12 +1,14 @@
 """The coaster on the epoxy blank (Amir, 2026-11-04): the full practice piece, every technique, on Makera's epoxy tooling
 board (150 x 101 x 10). Was the pin-flip test plate; Amir: "this is the coaster", do all of it.
 
-  Back (setup 1): pin holes, back witness squares, the sea-floor lines (open sea, no islands, V-bit engraved).
+  Back (setup 1): pin holes, back witness squares, the sea-floor lines (open sea, no islands, V-bit engraved), the back
+  edge chamfered.
   Flip about the pin line (front to back).
   Face (setup 2): field pocket, 6 points + the diamond + the rim line V-carved (no epoxy this time: Amir), face witness
   squares, the outline chamfered, then the outline cut through with tabs (+ tape + CA under the blank).
 
-Coaster 90 x 90 (the 110.5 design doesn't fit the 101 wide blank), corners r8, 10 thick. Points 24 wide (the board's are
+Coaster 90 x 90 (the 110.5 design doesn't fit the 101 wide blank), corners r8, 10 thick, both edges chamfered 1.5
+(Amir): the back edge in setup 1, the face edge in setup 2, both with the V-bit (2D Chamfer on the outline). Points 24 wide (the board's are
 27.5: Amir chose smaller points to keep 3 a side).
 Pins: 2 holes on the flip line, outside the coaster, not the same distance from the ends, so only the right turn fits.
 Witness windows (outside the coaster): a square from the back, a smaller one from the face; they meet, and the ring
@@ -148,7 +150,7 @@ def outline_face():
 def coaster():
     """The finished coaster (centred, back at z = 0). The map lines are engraved from the DXF (not modelled)."""
     b = extrude(outline_face(), T)
-    b = chamfer([e for e in b.edges() if e.center().Z > T - 0.01], EDGE_CH)
+    b = chamfer([e for e in b.edges() if e.center().Z > T - 0.01 or e.center().Z < 0.01], EDGE_CH)   # both edges (Amir)
     field = Pos(0, 0, T - POCKET / 2 + 0.5) * Box(FIELD, FIELD, POCKET + 1)
     b -= fillet(field.edges().filter_by(Axis.Z), POCKET_R)
     floor = T - POCKET
@@ -192,13 +194,14 @@ def check():
     print(f"  diamond to the point tips {gap:.1f}  {flag(gap >= 1.5)}"); ok &= gap >= 1.5
     rim = (C - FIELD) / 2
     outside = rim - LINE_GAP - LINE_W - EDGE_CH
+    print(f"  both edges chamfered {EDGE_CH} (back: setup 1, face: setup 2)")
     print(f"  rim {rim:.0f}: field wall | {LINE_GAP:.0f} | rim line {LINE_W} | {outside:.1f} | chamfer {EDGE_CH}  {flag(outside >= 1.5)}")
     ok &= outside >= 1.5
     under = T - POCKET - PT_DEPTH - ENGRAVE_D
     print(f"  under the points (map engraved {ENGRAVE_D} on the back): {under:.1f}  {flag(under >= 3.5)}"); ok &= under >= 3.5
     print(f"  outline: {T + THROUGH:.1f} deep ({THROUGH} into the spoil board), {N_TABS} tabs {TAB_W:.0f} long x {TAB_H} high")
     bm = back_map()["info"]
-    mc = np.hypot(MAP / 2 - (C / 2 - CORNER_R), MAP / 2 - (C / 2 - CORNER_R)) + 1 <= CORNER_R
+    mc = np.hypot(MAP / 2 - (C / 2 - CORNER_R), MAP / 2 - (C / 2 - CORNER_R)) + 1 <= CORNER_R - EDGE_CH   # inside the back chamfer
     print(f"Back: open-sea map (no land), {MAP:.0f} mm square, {bm['depth'][0]}-{bm['depth'][1]} m, a line every {bm['step']} m:"
           f" {bm['n_lines']} lines, {100 * bm['close_share']:.1f}% closer than 0.6 mm; inside the round corners  {flag(mc)}")
     ok &= mc
@@ -222,7 +225,7 @@ def export():
 
     # setup 1: back up
     doc = ezdxf.new(); msp = doc.modelspace()
-    for n in ("blank", "pins", "witness", "engrave", "coaster_ref"):
+    for n in ("blank", "pins", "witness", "engrave", "outline"):
         doc.layers.add(n)
     msp.add_lwpolyline(blank, close=True, dxfattribs={"layer": "blank"})
     for px in PIN_X:
@@ -231,7 +234,7 @@ def export():
         msp.add_lwpolyline(sq(wx, wy, WIT_BACK, 1), close=True, dxfattribs={"layer": "witness"})
     for l in back_map()["lines"]:      # map in back view = setup 1 as it lies: X = u, Y = v
         msp.add_lwpolyline([(u + L / 2, v + W / 2) for u, v in l["pts"]], dxfattribs={"layer": "engrave"})
-    msp.add_lwpolyline(wire_pts(ol, 1), close=True, dxfattribs={"layer": "coaster_ref"})
+    msp.add_lwpolyline(wire_pts(ol, 1), close=True, dxfattribs={"layer": "outline"})   # 2D Chamfer 1.5 (not cut through here)
     doc.saveas(os.path.join(out, "pintest_1_back.dxf"))
 
     # the pin holes alone
