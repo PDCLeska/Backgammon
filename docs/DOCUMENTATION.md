@@ -186,7 +186,8 @@ engraved on the back. `cad/pintest.py check export`; picture `art/pintest.png`.
   (90 deg bit); the rim line (1.6 wide, 3 off the field wall).
 - **Back:** 88 mm square of the map round Aegina at the board's scale, coast + every 50 m, V-bit engraved 0.4 deep.
 - **Pins:** 2 holes on the long centre line (the flip line), at 13 and 19 mm from the two ends: not the same, so the
-  blank turned end for end is 6 mm off and can't go on. Through the blank and 4 mm into a fixture plate.
+  blank turned end for end is 6 mm off and can't go on. Through the blank and 1 mm into the 2 mm spoil board
+  (the pins only locate it; tape + CA hold it).
 - **Witness windows:** at two corners, an 8 mm square 6 deep from the back, a 5 mm square 5 deep from the face. They
   meet (1 mm overlap): look in from the face, the ring round the small square is 1.5 wide all round if the flip is
   perfect. Ring wider on one side = the face is shifted the other way by half the difference. Two corners: shift and turn.
@@ -197,13 +198,14 @@ engraved on the back. `cad/pintest.py check export`; picture `art/pintest.png`.
   (`PIN_D`, placeholder 3.175; the hole is +0.05).
 
 Order:
-1. **Fixture plate:** a 6+ mm MDF / plywood scrap clamped to the bed (not the 2 mm spoil board: the pins would only go
-   in 2 mm, and the drill would reach the aluminium). It stays put until the test is done.
-2. **Setup 1, back up:** blank on the plate with painter's tape + CA (both faces get taped later, so keep it flat).
+1. **Spoil board** (2 mm MDF) on the bed, flat, no gap under it. It stays put until the test is done. Measure the
+   blank's thickness with calipers at both pin spots: the pin holes go to that + 1 mm, and only 2 mm of MDF is
+   between the blank and the aluminium (a wrong thickness = the bit in the bed).
+2. **Setup 1, back up:** blank on the spoil board with painter's tape + CA (both faces get taped later, so keep it flat).
    Probe XY at the front-left corner, save the WCS. Probe Z on top.
-3. Cut, 1/8" end mill: the **pins** (through + 4 into the plate; plunge if the pin is 1/8", else a helix bore),
+3. Cut, 1/8" end mill: the **pins** (blank thickness + 1, i.e. 1 into the spoil board; plunge if the pin is 1/8", else a helix bore),
    the **back witnesses** (6 deep). Then the engraving bit: the **map** 0.4 deep.
-4. **Flip** about the long axis (the pin line): front edge goes to the back. Put the pins in the plate, the blank on
+4. **Flip** about the long axis (the pin line): front edge goes to the back. Put the pins in the spoil board, the blank on
    the pins, tape + CA again. If it doesn't drop on the pins, it's turned the wrong way.
 5. **Setup 2, face up:** **do not re-probe XY**. Probe Z on the new top only.
 6. 1/8" end mill: **field** 2 deep, **face witnesses** 5 deep. 90 deg V-bit: **points** (2.5 below the floor, sharp

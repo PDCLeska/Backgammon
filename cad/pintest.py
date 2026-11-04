@@ -1,7 +1,7 @@
 """Pin-flip test plate (Amir, 2026-11-04): a 100 x 150 x 10 epoxy blank that proves the three things the board needs:
   1. a small "board" on one side: a field pocket, 6 points V-carved (the board's width and V-bit), the rim line;
   2. the pin method for the flip: two pin holes on the flip line, OUTSIDE the board area, drilled through the blank
-     into a fixture plate in the first setup; the second setup sits on the same pins. The pins are not the same
+     into the 2 mm spoil board in the first setup; the second setup sits on the same pins. The pins are not the same
      distance from the middle, so the blank only fits back the right way round (a wrong turn doesn't go on the pins);
   3. the sea-floor lines engraved on the back (Aegina, at the board's scale), V-bit engraving.
 Plus two witness windows (outside the board area): a square cut from the back, a smaller one from the face; they
@@ -31,7 +31,8 @@ L, W, T = 150.0, 100.0, 10.0
 PIN_D = 3.175                  # placeholder until measured; the hole is cut to this + PIN_FIT
 PIN_FIT = 0.05
 PIN_X = (-62.0, 56.0)          # on the flip line, not symmetric: only the right turn fits the pins
-PIN_INTO = 4.0                 # into the fixture plate (MDF / plywood, 6 mm or more, NOT the 2 mm spoil board)
+PIN_INTO = 1.0                 # into the 2 mm MDF spoil board (Amir has 2 mm): 1 mm left above the aluminium bed.
+SPOIL = 2.0                    # the pins only locate (tape + CA hold the blank), so 1 mm of grip is enough
 
 # ---------------------------------------------------------------- face: a small board (the board's own sizes)
 N_PTS = 3                      # points a side
@@ -153,7 +154,8 @@ def check():
     out = min(abs(px) for px in PIN_X) - pr - BOARD
     edge = L / 2 - max(abs(px) for px in PIN_X) - pr
     print(f"  {PIN_D} pins (placeholder: measure the kit's), holes {PIN_D + PIN_FIT:.2f} at x = {PIN_X[0]:+.0f} / {PIN_X[1]:+.0f}"
-          f" on the flip line, {PIN_INTO:.0f} into the fixture plate")
+          f" on the flip line, {PIN_INTO:.1f} into the {SPOIL:.0f} mm spoil board ({SPOIL - PIN_INTO:.1f} left above the bed)")
+    ok &= SPOIL - PIN_INTO >= 0.8
     print(f"  outside the board area by {out:.1f}, blank end {edge:.1f}  {flag(out >= 5 and edge >= 5)}"); ok &= out >= 5 and edge >= 5
     wrong = min(abs(-a - b) for a in PIN_X for b in PIN_X)
     print(f"  wrong turn (end for end): pins {wrong:.0f} mm off their holes, it can't go on  {flag(wrong >= 3)}"); ok &= wrong >= 3
