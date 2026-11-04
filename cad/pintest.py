@@ -241,7 +241,7 @@ def export():
         msp.add_lwpolyline(sq(wx, wy, WIT_BACK, 1), close=True, dxfattribs={"layer": "witness"})
     for l in back_map()["lines"]:      # map in back view = setup 1 as it lies: X = u, Y = v
         msp.add_lwpolyline([(u + L / 2, v + W / 2) for u, v in l["pts"]], dxfattribs={"layer": "engrave"})
-    msp.add_lwpolyline(wire_pts(ol, 1), close=True, dxfattribs={"layer": "outline"})   # 2D Chamfer 1.5 (not cut through here)
+    msp.add_lwpolyline(wire_pts(ol, 1), close=True, dxfattribs={"layer": "outline"})   # 2D Chamfer EDGE_CH (not cut through here)
     doc.saveas(os.path.join(out, "pintest_1_back.dxf"))
 
     # the pin holes alone
