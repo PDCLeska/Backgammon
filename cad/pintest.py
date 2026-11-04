@@ -3,7 +3,7 @@
   2. the pin method for the flip: two pin holes on the flip line, OUTSIDE the board area, drilled through the blank
      into the 2 mm spoil board in the first setup; the second setup sits on the same pins. The pins are not the same
      distance from the middle, so the blank only fits back the right way round (a wrong turn doesn't go on the pins);
-  3. the sea-floor lines engraved on the back (Aegina, at the board's scale), V-bit engraving.
+  3. the sea-floor lines engraved on the back (open sea, no islands, at the board's scale), V-bit engraving.
 Plus two witness windows (outside the board area): a square cut from the back, a smaller one from the face; they
 meet in the middle, and the ring round the small one shows the flip's error (equal all round = no error).
 
@@ -46,8 +46,9 @@ BOARD = FIELD / 2 + LINE_GAP + LINE_W     # the board area's half size (to the r
 
 # ---------------------------------------------------------------- back: the map
 MAP = 88.0                     # map square on the back, centred under the board
-MAP_CENTRE = (23.47, 37.70)    # lon, lat: Aegina, Angistri, Methana (as the coaster)
-MAP_STEP = 50                  # coast + a depth line every 50 m
+MAP_CENTRE = (23.769, 37.152)  # lon, lat: open sea S of the Saronic Gulf (Amir: no islands, just lines), 100-1080 m deep,
+                               # a ridge and small seamounts; found by searching the GMRT data for a land-free square
+MAP_STEP = 100                 # a depth line every 100 m
 
 # ---------------------------------------------------------------- witness windows (outside the board area)
 WIT = [(-66.0, 38.0), (66.0, -38.0)]      # blank frame, two opposite corners: shows shift and turn
@@ -75,7 +76,8 @@ def make_map():
     win = (abs(X) <= h + 3) & (abs(Y) <= h + 3)
     r0, r1 = np.where(win.any(1))[0][[0, -1]]; c0, c1 = np.where(win.any(0))[0][[0, -1]]
     X, Y, zs = X[r0:r1 + 1, c0:c1 + 1], Y[r0:r1 + 1, c0:c1 + 1], zs[r0:r1 + 1, c0:c1 + 1]
-    levels = sorted([0] + [-d for d in range(MAP_STEP, int(-zs.min()) + 1, MAP_STEP)])
+    assert zs[(abs(X) <= h) & (abs(Y) <= h)].max() < 0, "land in the map square"
+    levels = sorted(-d for d in range(MAP_STEP, int(-zs.min()) + 1, MAP_STEP))
     cs = plt.contour(X, Y, zs, levels=levels)
     lines = []
     for lev, segs in zip(cs.levels, cs.allsegs):
@@ -179,7 +181,7 @@ def check():
     under = T - POCKET - PT_DEPTH - ENGRAVE_D
     print(f"  epoxy left under the points (back engraved {ENGRAVE_D}): {under:.1f}  {flag(under >= 4)}"); ok &= under >= 4
     bm = back_map()["info"]
-    print(f"Back: map round Aegina, {bm['size']:.0f} mm square, coast + every {bm['step']} m: {bm['n_lines']} lines,"
+    print(f"Back: open-sea map (no land), {bm['size']:.0f} mm square, every {bm['step']} m: {bm['n_lines']} lines,"
           f" {100 * bm['close_share']:.1f}% of the length closer than 0.6 mm")
     ok &= MAP / 2 <= W / 2 - 2
     b = body()
@@ -256,7 +258,7 @@ def preview():
         if s == 1:
             for l in back_map()["lines"]:
                 p = np.array(l["pts"])
-                ax.plot(p[:, 0] + L / 2, p[:, 1] + W / 2, color="#123" if l["level"] < 0 else "#a40", lw=0.5 if l["level"] < 0 else 0.9)
+                ax.plot(p[:, 0] + L / 2, p[:, 1] + W / 2, color="#123", lw=0.6)
         else:
             x0, y0 = setup_xy(-FIELD / 2, -FIELD / 2, 2)
             ax.add_patch(R((x0, y0), FIELD, FIELD, fc="#b9d3d7", ec="#456"))

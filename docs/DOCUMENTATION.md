@@ -184,7 +184,8 @@ engraved on the back. `cad/pintest.py check export`; picture `art/pintest.png`.
 
 - **Face:** field 82.5 square, 2 deep; 6 points 26 x 32.2 (the board's width), V-carved 2.5 below the field floor
   (90 deg bit); the rim line (1.6 wide, 3 off the field wall).
-- **Back:** 88 mm square of the map round Aegina at the board's scale, coast + every 50 m, V-bit engraved 0.4 deep.
+- **Back:** 88 mm square of open sea, no islands (Amir): south of the Saronic Gulf, 23.77 E 37.15 N, 100-1080 m deep,
+  a ridge and small seamounts; a line every 100 m, at the board's scale, V-bit engraved 0.4 deep.
 - **Pins:** 2 holes on the long centre line (the flip line), at 13 and 19 mm from the two ends: not the same, so the
   blank turned end for end is 6 mm off and can't go on. Through the blank and 1 mm into the 2 mm spoil board
   (the pins only locate it; tape + CA hold it).
