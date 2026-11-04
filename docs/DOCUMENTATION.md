@@ -17,8 +17,20 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Tools | Ordered from Makera (2.5), + the laser module (Amir has it). |
 | **Coaster** | **First: the practice piece** (Amir), every board technique on cheap-to-lose wood (section 3). `cad/coaster.py check export`; viewer http://localhost:8771/review/?model=coaster. |
 
+### Wood to buy (Amir is in Cary, NC; no saw, so pieces are bought cut to size)
+Amir was writing to Capitol City Lumber (Raleigh, 919-832-6492) for these; nothing confirmed as bought yet.
+| Piece | Inches | mm | Wood |
+|---|---|---|---|
+| Board halves x 2 | 7-3/4 x 11-5/8, no bigger | 197 x 295 | 4/4 walnut S2S (dressed 13/16 to 7/8 = 20.6 to 22.2), flat, one clean face |
+| Coasters x 4 | 4-3/4 x 6 | 121 x 152 | 1/2" walnut, or 4/4 |
+| Tests x 3 | 4-3/4 x 6 | 121 x 152 | Poplar / pine / 1/2" MDF (Home Depot or Lowe's cut it) |
+
+Measure the bed first: if it is really 360 x 240, the board blanks can be 8 x 12.
+
 ### Next steps
-0. **The coaster first** (section 3): learn the settings there, then the board.
+0. **The coaster first** (section 3): learn the settings there, then the board. Amir wants something more basic before
+   that: a 100 x 100 MDF test plate (a 3 mm pocket, V-carved lines and one point, the outline last with tabs; not
+   modelled yet), then the coaster in walnut without epoxy, then the full coaster.
 1. When the tools come: measure the 90 deg chamfering bit (cutting diameter -> `VBIT_D`; the model assumes 6, so 3 mm deep).
 2. Check Makera CAM can V-carve the point outlines (sharp tips, flat bottom cleared); if not, F-Engrave or VCarve.
 3. **Test cut + pour in pine / MDF, then in walnut offcut**: two points of each colour, a piece of rim line, a corner.
