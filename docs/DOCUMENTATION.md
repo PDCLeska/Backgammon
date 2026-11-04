@@ -28,6 +28,7 @@ Amir was writing to Capitol City Lumber (Raleigh, 919-832-6492) for these; nothi
 Measure the bed first: if it is really 360 x 240, the board blanks can be 8 x 12.
 
 ### Next steps
+**Now (2026-11-04): the pin-flip test plate** (section 4), on Amir's 100 x 150 x 10 epoxy blank.
 0. **The coaster first** (section 3): learn the settings there, then the board. Amir wants something more basic before
    that: a 100 x 100 MDF test plate (a 3 mm pocket, V-carved lines and one point, the outline last with tabs; not
    modelled yet), then the coaster in walnut without epoxy, then the full coaster.
@@ -172,3 +173,42 @@ flip are learned on a piece that costs little to lose. Make it in pine / poplar 
   power / speed for a good line on walnut.
 - **Hot cups:** most tabletop epoxies soften at 50-60 C, and a fresh coffee mug's base can be hotter: use a
   heat-resistant epoxy for the coaster (or accept a faint ring on the points); for the board it doesn't matter.
+
+---
+
+## 4. Pin-flip test plate (Amir, 2026-11-04)
+
+A 100 x 150 x 10 epoxy blank that proves three things before the coaster and the board: (1) a small board on one side,
+(2) the pin method for the flip (pins outside the board area, only the right turn fits), (3) the sea-floor lines
+engraved on the back. `cad/pintest.py check export`; picture `art/pintest.png`.
+
+- **Face:** field 82.5 square, 2 deep; 6 points 26 x 32.2 (the board's width), V-carved 2.5 below the field floor
+  (90 deg bit); the rim line (1.6 wide, 3 off the field wall).
+- **Back:** 88 mm square of the map round Aegina at the board's scale, coast + every 50 m, V-bit engraved 0.4 deep.
+- **Pins:** 2 holes on the long centre line (the flip line), at 13 and 19 mm from the two ends: not the same, so the
+  blank turned end for end is 6 mm off and can't go on. Through the blank and 4 mm into a fixture plate.
+- **Witness windows:** at two corners, an 8 mm square 6 deep from the back, a 5 mm square 5 deep from the face. They
+  meet (1 mm overlap): look in from the face, the ring round the small square is 1.5 wide all round if the flip is
+  perfect. Ring wider on one side = the face is shifted the other way by half the difference. Two corners: shift and turn.
+- **Files** (origin = the blank's front-left corner as it lies, for both setups):
+  `export/pintest_1_back.dxf` (layers `pins`, `witness`, `engrave`), `export/pintest_2_face.dxf` (`pins` for
+  reference only, `witness`, `field`, `points`, `rim_line`), `export/pintest.step` / `.stl`.
+- **Measure first:** the blank's thickness (above 11 the windows don't meet: tell Claude), the kit pins' diameter
+  (`PIN_D`, placeholder 3.175; the hole is +0.05).
+
+Order:
+1. **Fixture plate:** a 6+ mm MDF / plywood scrap clamped to the bed (not the 2 mm spoil board: the pins would only go
+   in 2 mm, and the drill would reach the aluminium). It stays put until the test is done.
+2. **Setup 1, back up:** blank on the plate with painter's tape + CA (both faces get taped later, so keep it flat).
+   Probe XY at the front-left corner, save the WCS. Probe Z on top.
+3. Cut, 1/8" end mill: the **pins** (through + 4 into the plate; plunge if the pin is 1/8", else a helix bore),
+   the **back witnesses** (6 deep). Then the engraving bit: the **map** 0.4 deep.
+4. **Flip** about the long axis (the pin line): front edge goes to the back. Put the pins in the plate, the blank on
+   the pins, tape + CA again. If it doesn't drop on the pins, it's turned the wrong way.
+5. **Setup 2, face up:** **do not re-probe XY**. Probe Z on the new top only.
+6. 1/8" end mill: **field** 2 deep, **face witnesses** 5 deep. 90 deg V-bit: **points** (2.5 below the floor, sharp
+   tips), **rim line**.
+7. Read the witness rings (calipers or a loupe); note the error in X and Y here. That's the flip error the board will have.
+
+Epoxy cuts fine but softens with heat: single flute or sharp bits, moderate rpm, no dwelling, blow the chips off.
+
