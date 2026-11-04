@@ -28,7 +28,7 @@ Amir was writing to Capitol City Lumber (Raleigh, 919-832-6492) for these; nothi
 Measure the bed first: if it is really 360 x 240, the board blanks can be 8 x 12.
 
 ### Next steps
-**Now (2026-11-04): the pin-flip test plate** (section 4), on Amir's 100 x 150 x 10 epoxy blank.
+**Now (2026-11-04): the coaster on the epoxy blank** (section 4): 90 x 90, every technique, 2D in Makera Studio.
 0. **The coaster first** (section 3): learn the settings there, then the board. Amir wants something more basic before
    that: a 100 x 100 MDF test plate (a 3 mm pocket, V-carved lines and one point, the outline last with tabs; not
    modelled yet), then the coaster in walnut without epoxy, then the full coaster.
@@ -176,44 +176,43 @@ flip are learned on a piece that costs little to lose. Make it in pine / poplar 
 
 ---
 
-## 4. Pin-flip test plate (Amir, 2026-11-04)
+## 4. The coaster on the epoxy blank (Amir, 2026-11-04)
 
-A 150 x 101 x 10 epoxy blank (Amir measured 150 x 101) that proves three things before the coaster and the board: (1) a small board on one side,
-(2) the pin method for the flip (pins outside the board area, only the right turn fits), (3) the sea-floor lines
-engraved on the back. `cad/pintest.py check export`; picture `art/pintest.png`.
+The practice piece, every technique, on Makera's epoxy tooling board **150 x 101 x 10** (Amir measured 150 x 101).
+Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pintest.py check export`; pictures
+`art/pintest.png` (both sides), `art/pintest_setup.png` (on the bed). Amir: **2D** in Makera Studio (two DXFs, two WCS).
 
-- **Face:** field 82.5 square, 2 deep; 6 points 26 x 32.2 (the board's width), V-carved 2.5 below the field floor
-  (90 deg bit); the rim line (1.6 wide, 3 off the field wall).
-- **Back:** 88 mm square of open sea, no islands (Amir): south of the Saronic Gulf, 23.77 E 37.15 N, 100-1080 m deep,
-  a ridge and small seamounts; a line every 100 m, at the board's scale, V-bit engraved 0.4 deep.
-- **Pins:** 2 holes on the long centre line (the flip line), at 13 and 19 mm from the two ends: not the same, so the
-  blank turned end for end is 6 mm off and can't go on. Through the blank and 1 mm into the 2 mm spoil board
-  (the pins only locate it; tape + CA hold it).
-- **Witness windows:** at two corners, an 8 mm square 6 deep from the back, a 5 mm square 5 deep from the face. They
-  meet (1 mm overlap): look in from the face, the ring round the small square is 1.5 wide all round if the flip is
-  perfect. Ring wider on one side = the face is shifted the other way by half the difference. Two corners: shift and turn.
-- **Files** (origin = the blank's front-left corner as it lies, for both setups):
-  `export/pintest_1_back.dxf` (layers `pins`, `witness`, `engrave`), `export/pintest_2_face.dxf` (`pins` for
-  reference only, `witness`, `field`, `points`, `rim_line`), `export/pintest.step` / `.stl`.
-- **Pins:** the Carvera Air's own 4 mm dowel pins (10 in the box). Holes 4.0 at X 13 and X 131, Y 50.5 (front-left zero; blank 150 x 101),
-  the same spot in both setups. `export/pintest_pins.dxf` = the blank outline + those 2 circles only. In the CAM:
-  **2D Pocket** (not 2D Drilling: the 1/8" bit is smaller than the hole), depth = blank thickness + 1.
-- **Measure first:** the blank's thickness (above 11 the windows don't meet: tell Claude), a pin (4.0?).
+- **Coaster 90 x 90**, corners r8, 10 thick, top edge chamfered 1.5 (the 110.5 design doesn't fit the 101 blank).
+- **Face:** field 72 square, 3 deep; 6 points 22.5 x 27 (24 pitch; the board's are 27.5: Amir chose smaller points to
+  keep 3 a side), V-carved 2.5 below the floor; the diamond (12 x 6, 1.5 deep); the rim line (1.6 wide, 3 off the
+  field wall). **No epoxy this time** (Amir): V-carve only.
+- **Back:** 76 mm square of open sea, no islands (Amir): south of the Saronic Gulf, 23.77 E 37.15 N, 157-1079 m deep,
+  a ridge and small seamounts, a line every 100 m (32 lines), engraved 0.4 deep with the engraving bit.
+- **Pins:** the Carvera Air's own 4 mm dowel pins. Holes at **X 13 and X 131, Y 50.5** (front-left zero), the same spot
+  in both setups, on the flip line; 13 and 19 mm from the ends, so a wrong turn is 6 mm off and can't go on.
+  Through the blank + 1 mm into the 2 mm spoil board (the pins only locate; tape + CA hold).
+- **Witness windows** (outside the coaster): an 8 mm square 6 deep from the back, a 5 mm square 5 deep from the face.
+  Look in from the back: the ring round the 5 mm hole is 1.5 all round if the flip is perfect.
+- **Outline:** 2D Contour outside, 10.3 deep (0.3 into the spoil board), 4 tabs (5 long, 1.5 high, mid-side).
+
+Files (origin = the blank's front-left corner as it lies; both setups):
+| File | Setup | Layers -> paths |
+|---|---|---|
+| `export/pintest_1_back.dxf` | WCS1, back up | `pins` -> 2D Pocket 11 deep, 1/8" end mill; `witness` -> 2D Pocket 6 deep; `engrave` -> engrave 0.4, engraving bit; `coaster_ref` = where the coaster is (don't cut) |
+| `export/pintest_2_face.dxf` | WCS2, face up | `field` -> 2D Pocket 3; `witness` -> 2D Pocket 5; `points` -> V-carve 2.5 below the field floor (start at 3), 90 deg bit; `diamond` -> V-carve 1.5 (start at 3); `rim_line` -> V-carve (from the top); `outline` -> 2D Chamfer 1.5, then 2D Contour outside 10.3 with tabs; `pins` = reference only |
+| `export/pintest_pins.dxf` | - | the blank + the 2 pin circles only |
+| `export/pintest.step` / `.stl` | - | the finished coaster, to look at (the map lines are not in it) |
 
 Order:
-1. **Spoil board** (2 mm MDF) on the bed, flat, no gap under it. It stays put until the test is done. Measure the
-   blank's thickness with calipers at both pin spots: the pin holes go to that + 1 mm, and only 2 mm of MDF is
-   between the blank and the aluminium (a wrong thickness = the bit in the bed).
-2. **Setup 1, back up:** blank on the spoil board with painter's tape + CA (both faces get taped later, so keep it flat).
-   Probe XY at the front-left corner, save the WCS. Probe Z on top.
-3. Cut, 1/8" end mill: the **pins** (blank thickness + 1, i.e. 1 into the spoil board; plunge if the pin is 1/8", else a helix bore),
-   the **back witnesses** (6 deep). Then the engraving bit: the **map** 0.4 deep.
-4. **Flip** about the long axis (the pin line): front edge goes to the back. Put the pins in the spoil board, the blank on
-   the pins, tape + CA again. If it doesn't drop on the pins, it's turned the wrong way.
-5. **Setup 2, face up:** **do not re-probe XY**. Probe Z on the new top only.
-6. 1/8" end mill: **field** 2 deep, **face witnesses** 5 deep. 90 deg V-bit: **points** (2.5 below the floor, sharp
-   tips), **rim line**.
-7. Read the witness rings (calipers or a loupe); note the error in X and Y here. That's the flip error the board will have.
+1. **Spoil board** (2 mm MDF) flat on the bed, the **L bracket** at Anchor 1 (front-left) screwed through it; the far
+   end held down. It stays put until the coaster is done.
+2. **Setup 1, back up:** blank into the bracket corner, painter's tape + CA. XY zero = the bracket corner (Anchor 1,
+   offset 0); Z zero on the top. Cut WCS1: pins, back witnesses (1/8" end mill), then the map (engraving bit).
+3. **Flip** front to back (about the pin line). Pins into the spoil board's holes, blank down on them and into the
+   bracket corner, tape + CA again. If it won't go on the pins, it's turned the wrong way.
+4. **Setup 2, face up:** same XY zero (don't re-probe XY), new Z zero on the top. Cut WCS2: field, face witnesses
+   (1/8" end mill); points, diamond, rim line (90 deg V-bit); chamfer on the outline (V-bit); outline with tabs
+   (1/8" end mill) last.
+5. Off: cut the tabs (knife / flush saw), sand. Read the witness rings from the back; note the flip error here.
 
-Epoxy cuts fine but softens with heat: single flute or sharp bits, moderate rpm, no dwelling, blow the chips off.
-
+Note down for the board: V-bit depth vs real width, how the tooling board cuts (finish, chips), the flip error.
