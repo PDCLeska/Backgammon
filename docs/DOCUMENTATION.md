@@ -219,3 +219,16 @@ Order:
 5. Off: cut the tabs (knife / flush saw), sand. Read the witness rings from the back; note the flip error here.
 
 Note down for the board: V-bit depth vs real width, how the tooling board cuts (finish, chips), the flip error.
+
+**What happened (2026-11-05, side 1):**
+- Pin holes at 4.0 were **too tight** for the 4 mm pins, and 1 mm into the spoil board **didn't hold** them. Amir did the
+  flip on the **L bracket** instead (front to back: X exact, Y as exact as the blank's 101 width). Files now: holes 4.1,
+  2.5 into the two stacked 2 mm spoil boards (1.5 left above the bed).
+- Makera Studio's **2D Chamfer** path wrote G-code with no feed ("Alarm: Undefined feed rate", twice): use a **2D Contour,
+  on line** with the 90 deg bit for chamfers instead.
+- Studio has **no V-carve** path: the points / diamond were pocketed with the flat 1/8" end mill (rounded tips). For the
+  board's epoxy points, find a V-carve route (another CAM, or Studio's 3D) before cutting walnut.
+- Double-sided tape over the whole bottom held far too hard: use 3-4 short strips.
+- Auto leveling found the blank's top 0.22 mm out of level over 137 x 91: keep leveling on for shallow cuts.
+- Face file: `rim_center` layer added = the rim line's centre (one 2D Contour on line, 90 deg bit, 0.75 deep fills the
+  1.6 band between the two `rim_line` edges).

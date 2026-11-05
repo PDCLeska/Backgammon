@@ -40,10 +40,10 @@ L, W, T = 150.0, 101.0, 10.0       # Amir measured 150 x 101 (Makera epoxy tooli
 
 # ---------------------------------------------------------------- pins
 PIN_D = 4.0                    # the Carvera Air's own 4 mm dowel pins (Amir)
-PIN_FIT = 0.0                  # 4 mm circle, cut as a 2D Pocket with the 1/8" end mill (drilling can't: bit < hole)
+PIN_FIT = 0.1                  # 4.1 hole: Amir, 2026-11-05: 4.0 was too tight for the 4 mm pins (milled holes come out small)
 PIN_X = (-62.0, 56.0)          # on the flip line, not symmetric: only the right turn fits the pins
-PIN_INTO = 1.0                 # into the 2 mm MDF spoil board: 1 mm left above the aluminium bed
-SPOIL = 2.0
+PIN_INTO = 2.5                 # into the spoil boards (Amir: 1 mm did not hold the pins); 2 x 2 mm MDF stacked
+SPOIL = 4.0
 
 # ---------------------------------------------------------------- the coaster
 C = 90.0                       # 90 x 90
@@ -253,7 +253,7 @@ def export():
 
     # setup 2: face up
     doc = ezdxf.new(); msp = doc.modelspace()
-    for n in ("blank", "pins", "witness", "field", "points", "diamond", "rim_line", "outline"):
+    for n in ("blank", "pins", "witness", "field", "points", "diamond", "rim_line", "rim_center", "outline"):
         doc.layers.add(n)
     msp.add_lwpolyline(blank, close=True, dxfattribs={"layer": "blank"})
     for px in PIN_X:
@@ -269,6 +269,9 @@ def export():
     band = rim_band()
     for w in [band.outer_wire(), *band.inner_wires()]:
         msp.add_lwpolyline(wire_pts(w, 2), close=True, dxfattribs={"layer": "rim_line"})
+    # the rim line's centre: one V-groove here (2D Contour, on line, 90 deg bit, LINE_D deep) fills the band
+    c = offset(Rectangle(FIELD, FIELD), LINE_GAP + LINE_W / 2, kind=Kind.ARC).faces()[0].outer_wire()
+    msp.add_lwpolyline(wire_pts(c, 2), close=True, dxfattribs={"layer": "rim_center"})
     msp.add_lwpolyline(wire_pts(ol, 2), close=True, dxfattribs={"layer": "outline"})
     doc.saveas(os.path.join(out, "pintest_2_face.dxf"))
     preview()
