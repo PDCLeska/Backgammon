@@ -187,7 +187,8 @@ Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pin
   keep 3 a side), V-carved 1.4 below the floor; the diamond (12 x 6, 1.4 deep); the rim line (1.6 wide, 3 off the
   field wall). **No epoxy this time** (Amir): V-carve only.
 - **Bits: all on the 1/8" collet today** (Amir: no collet change): 1/8" end mill, the set's engraving bit, the set's
-  small 90 deg V-bit (reaches ~1.5: hence 1.4 deep V-cuts and 1.2 chamfers; the 6 mm chamfering bit is for the board).
+  small 90 deg V-bit (reaches ~1.5: hence 1.4 deep V-cuts and 1.2 chamfers). Amir has the 6 mm collet, the 6 mm 90 deg
+  chamfering bit and the 6 x 22 O-flute: the collet change is for the next project (the board).
 - **Back:** 76 mm square of open sea, no islands (Amir): south of the Saronic Gulf, 23.77 E 37.15 N, 157-1079 m deep,
   a ridge and small seamounts, a line every 100 m (32 lines), engraved 0.4 deep with the engraving bit.
 - **Pins:** the Carvera Air's own 4 mm dowel pins. Holes at **X 13 and X 131, Y 50.5** (front-left zero), the same spot
