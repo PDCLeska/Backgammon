@@ -223,14 +223,14 @@ def face2d():
 
 def build():
     from build123d import extrude, Pos
-    body = extrude(face2d(), T)
+    body = extrude(face2d(), T, dir=(0, 0, 1))        # up from z = 0 (a clockwise trace would extrude down)
     from shapely.geometry import LineString
     from shapely.ops import unary_union
     from build123d import Face, Wire
     g = unary_union([LineString(q).buffer(GROOVE_W / 2, 8) for q in name_strokes()])
     wire = lambda r: Wire.make_polygon([(x, y, 0) for x, y in np.asarray(r.coords)[:-1]], close=True)
     for p in (g.geoms if g.geom_type == "MultiPolygon" else [g]):
-        body -= Pos(0, 0, T - TEXT_D) * extrude(Face(wire(p.exterior), [wire(i) for i in p.interiors]), TEXT_D + 0.01)
+        body -= Pos(0, 0, T - TEXT_D) * extrude(Face(wire(p.exterior), [wire(i) for i in p.interiors]), TEXT_D + 0.01, dir=(0, 0, 1))
     return body
 
 
