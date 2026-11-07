@@ -26,6 +26,10 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
   (its ~3 mm flute reaches). The design stays as drawn (no roughing / rounded tips). `MARGIN` now 6 (the pocket is
   3.5 mm in from the plate's edges: bit and collet clear of the L bracket). Time: thinning ~1-1.5 h (~11 cm3 of
   brass), cuts ~30-40 min. Full-area painter's tape + CA under the bookmark area (slugs stay put).
+- **Paths (Amir's bits, 2026-11-07):** 1 `face` 2D Pocket, O-flute metal 3.175 x 12, 0 -> 2.1, step 0.3; 2 `outline`
+  2D Contour outside, 4 tabs, same bit, 2.1 -> 3.0, step 0.3; 3 `engrave` **2D Contour on line** (strokes ~0.13 mm:
+  a 0.3 tip pockets only 55 % of the letters), engraving for metal 30 deg x 0.2, 2.1 -> 2.25; 4 `cut` 2D Contour
+  inside, O-flute metal 1 x 3, 2.1 -> 3.0, step 0.1 (a 2 mm bit leaves 28 uncut bridges). Full-area tape + CA.
 - Finish: sand the bottom burrs on 400/600 on glass, polish (Brasso / Flitz), alcohol, then Incralac / clear lacquer or
   Renaissance Wax; optional black paint in the name before polishing.
 
