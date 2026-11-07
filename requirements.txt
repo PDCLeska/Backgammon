@@ -4,3 +4,4 @@ matplotlib==3.11.2
 numpy==2.5.3
 scipy==1.18.1
 shapely==2.2.0
+Hershey-Fonts==2.1.0

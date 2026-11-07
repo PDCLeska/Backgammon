@@ -34,7 +34,10 @@ MARGIN = 6.0                    # bookmark to the plate's left edge: the 1 mm en
 NAME = "Mrs. Poirier"          # Amir's son's teacher
 FONT_FILE = "C:/Windows/Fonts/ITCEDSCR.TTF"   # Edwardian Script: the closest installed to Amir's sample
 NAME_MARGIN = 1.5               # the name fits inside the blank band with this much brass round it
-TEXT_D = 0.2                    # engraving depth
+TEXT_D = 0.15                   # engraving depth (V-bit along single lines)
+NAME_FONT = "scriptc"           # Amir, 2026-11-07: a single-line (stroke) font, Hershey Script Complex: the bit follows
+                                # each stroke once (2D Contour on line); the outline font was too thin to cut
+GROOVE_W = 0.28                 # the line the 30 deg x 0.2 metal engraving bit cuts at TEXT_D: 0.2 + 2 * 0.15 * tan 15
 TEXT_H = None                   # font size, set by name_text() to fit the band
 HOLE_D = 6.0                    # the string hole (Amir, 2026-11-07: a 2.6 mm leather cord; 6 takes it doubled, as a loop)
 RING = 3.0                      # brass round the hole (the tab's radius = HOLE_D / 2 + RING)
@@ -170,6 +173,30 @@ def name_loops():
     return [np.array(l) for l in d["loops"]]
 
 
+def name_strokes():
+    """The name as single-line strokes (bookmark frame, mm): Hershey NAME_FONT, reading up the band (as the outline
+    name did), as big as fits inside the band with NAME_MARGIN round it (counting the groove's width), centred."""
+    from HersheyFonts import HersheyFonts
+    f = HersheyFonts(); f.load_default_font(NAME_FONT); f.normalize_rendering(10)
+    strokes = []
+    for a, b in f.lines_for_text(NAME):                    # segments, in drawing order: chain them into polylines
+        if strokes and np.hypot(strokes[-1][-1][0] - a[0], strokes[-1][-1][1] - a[1]) < 1e-6:
+            strokes[-1].append(b)
+        else:
+            strokes.append([a, b])
+    P = np.vstack(strokes)
+    bx0, bx1, by0, by1 = band()
+    room_l = by1 - by0 - 2 * NAME_MARGIN - GROOVE_W         # the text's length runs along the band (y)
+    room_h = bx1 - bx0 - 2 * NAME_MARGIN - GROOVE_W
+    k = min(room_l / np.ptp(P[:, 0]), room_h / np.ptp(P[:, 1]))
+    c = (P.min(0) + P.max(0)) / 2
+    out = []
+    for q in strokes:                                       # turned 90 deg: reading up, letter tops toward -x
+        q = (np.asarray(q, float) - c) * k
+        out.append(np.c_[-q[:, 1] + (bx0 + bx1) / 2, q[:, 0] + (by0 + by1) / 2])
+    return out
+
+
 def name_faces():
     """The letters as faces (counters as holes), from name_loops()."""
     from build123d import Face, Wire
@@ -197,8 +224,13 @@ def face2d():
 def build():
     from build123d import extrude, Pos
     body = extrude(face2d(), T)
-    for f in name_faces():
-        body -= Pos(0, 0, T - TEXT_D) * extrude(f, TEXT_D + 0.01)
+    from shapely.geometry import LineString
+    from shapely.ops import unary_union
+    from build123d import Face, Wire
+    g = unary_union([LineString(q).buffer(GROOVE_W / 2, 8) for q in name_strokes()])
+    wire = lambda r: Wire.make_polygon([(x, y, 0) for x, y in np.asarray(r.coords)[:-1]], close=True)
+    for p in (g.geoms if g.geom_type == "MultiPolygon" else [g]):
+        body -= Pos(0, 0, T - TEXT_D) * extrude(Face(wire(p.exterior), [wire(i) for i in p.interiors]), TEXT_D + 0.01)
     return body
 
 
@@ -235,7 +267,7 @@ def check():
     bx0, bx1, by0, by1 = band()
     inner = (abs(X) < W / 2 - 4) & ~((X < bx1 + 0.5) & (Y > by0 - 0.5) & (Y < by1 + 0.5))
     lw = 2 * dt[ridge & inner]
-    nl = np.vstack(name_loops())
+    nl = np.vstack(name_strokes())
     print(f"inner lines {np.median(lw):.2f} mm wide (most {np.percentile(lw, 10):.2f} to {np.percentile(lw, 90):.2f}), "
           f"plate {T:g} mm; name {NAME!r} {np.ptp(nl[:, 1]):.0f} mm long")
     bm.T = T
@@ -272,7 +304,7 @@ def export():
     os.makedirs(out, exist_ok=True)
     import ezdxf
     outer, holes = outlines()
-    names = name_loops()
+    names = name_strokes()
     for fname, tf, plate in (("bookmark_sunflower", np.asarray, False), ("sunflower_on_plate", plate_xy, True)):
         doc = ezdxf.new(units=4); msp = doc.modelspace()          # units 4 = mm
         for l in (["plate", "face"] if plate else []) + ["outline", "cut", "engrave"]:
@@ -284,8 +316,8 @@ def export():
         poly(outer, "outline")                                    # one closed shape
         for q in holes:                                          # one closed shape per cut-out
             poly(q, "cut")
-        for q in names:                                          # closed letter outlines (counters too)
-            poly(q, "engrave")
+        for q in names:                                          # single-line strokes (open): 2D Contour on line
+            msp.add_lwpolyline([tuple(p) for p in tf(q)], dxfattribs={"layer": "engrave"})
         doc.saveas(os.path.join(out, fname + ".dxf"))
     f = face2d()
     s = build()
@@ -295,7 +327,7 @@ def export():
     print(f"  export/bookmarks/bookmark_sunflower.dxf ({len(f.inner_wires())} cut-outs), .step, .stl; "
           f"{bb.size.X:.1f} x {bb.size.Y:.1f} x {bb.size.Z:.1f} mm, valid: {s.is_valid}")
     print(f"  export/bookmarks/sunflower_on_plate.dxf (origin: the plate's front-left corner; closed shapes: 1 outline,"
-          f" {len(holes)} cut-outs, {len(names)} letter outlines, the thinning pocket 'face')")
+          f" {len(holes)} cut-outs, {len(names)} single-line strokes, the thinning pocket 'face')")
     print(f"  depths: face 0 -> {FACE_D:.1f}; engrave {FACE_D:.1f} -> {FACE_D + TEXT_D:.1f}; cut + outline {FACE_D:.1f} -> {STOCK_T:.1f}")
     # preview: the plate, the bookmark on it as cut, the engraved name
     mv = on_plate()
@@ -308,11 +340,9 @@ def export():
     for q in holes:
         ax.fill(*sh(q).T, fc="#f4f1ea", lw=0)
     ring = lambda w: np.array([(v.X, v.Y) for v in w.positions(np.linspace(0, 1, 400))])
-    for g in name_faces():
-        g = mv * g
-        ax.fill(*ring(g.outer_wire()).T, fc="#3b2a10", lw=0)
-        for w in g.inner_wires():
-            ax.fill(*ring(w).T, fc="#cda44a", lw=0)
+    for q in name_strokes():
+        q = sh(q)
+        ax.plot(q[:, 0], q[:, 1], color="#3b2a10", lw=0.7, solid_capstyle="round")
     x1 = sh(outer)[:, 0].max()
     ax.text((x1 + PLATE[0]) / 2, PLATE[1] / 2, "left over", ha="center", va="center", color="#8a7340",
             fontsize=9)
