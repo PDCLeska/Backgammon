@@ -9,8 +9,8 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
 ---
 
 ## 0. Update from the cloud session (2026-11-07)
-- **Plate now 100 x 200 x 3 mm brass** (Amir). `T = 3.0`, `PLATE = (100, 200)`. The bookmark is now in the plate's
-  **front-left corner**, 3 mm from both edges (x 3.0-43.1, y 3.0-122.8): left over 56 x 200 beside it + 40 x 76 above.
+- **Plate now 200 x 100 x 3 mm brass**, long side along X (Amir: "rotate 90"). `T = 3.0`, `PLATE = (200, 100)`, `ROT = -90`: bookmark lying along X, tab to the right, name reading upright along the back. It is in the plate's
+  **front-left corner**, 3 mm from both edges (x 3.0-122.8, y 3.0-43.1): left over 200 x 54 behind it + 74 x 40 beside.
 - **String hole 6 mm** (Amir's leather cord is 2.6 mm: 6 takes it doubled, as a loop), 3 mm of brass round it, 2.5 mm
   above the cut-outs under it; the tab moved up, the bookmark is now **40.1 x 119.8** (`retab()`: `HOLE_D`, `RING`,
   `NECK`; needs `shapely`, now in requirements.txt).

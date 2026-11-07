@@ -25,7 +25,8 @@ GOLD_SAT = 0.35                 # saturation above this = gold (the background i
 THIN = 0.25                     # mm taken off each side of the inner lines: the picture's ~2.0 mm lines -> ~1.5
 FRAME_KEEP = 2.6                # the outer frame (about 3 mm wide) and the name band keep their full width
 T = 3.0                         # brass sheet (Amir, 2026-11-07: 3 mm; was 0.8)
-PLATE = (100.0, 200.0)          # Amir's brass plate, x by y (mm) (2026-11-07: 100 x 200; was 100 x 150)
+PLATE = (200.0, 100.0)          # Amir's brass plate, x by y (mm) (2026-11-07: 200 x 100, the long side along X)
+ROT = -90                       # the bookmark on the plate turned this much (Amir: rotate 90): tab right, name upright
 MARGIN = 3.0                    # bookmark to the plate's left edge: the 1 mm end mill passes outside the outline
 NAME = "Mrs. Poirier"          # Amir's son's teacher
 FONT_FILE = "C:/Windows/Fonts/ITCEDSCR.TTF"   # Edwardian Script: the closest installed to Amir's sample
@@ -201,9 +202,17 @@ def build():
 def on_plate():
     """Where the bookmark goes on the plate: the move from its own frame (centred on 0,0) to the plate's (origin at
     the front-left corner): MARGIN from the left and front edges."""
-    from build123d import Pos
-    bb = face2d().bounding_box()
-    return Pos(MARGIN - bb.min.X, MARGIN - bb.min.Y, 0)     # in the front-left corner (Amir): the most plate left over
+    from build123d import Pos, Rot
+    bb = (Rot(0, 0, ROT) * face2d()).bounding_box()
+    return Pos(MARGIN - bb.min.X, MARGIN - bb.min.Y, 0) * Rot(0, 0, ROT)   # front-left corner (Amir): most plate left
+
+
+def plate_xy(q):
+    """Points in the bookmark's frame -> the plate's (on_plate(): turned ROT, then moved into the corner)."""
+    loc = on_plate()
+    a = np.radians(ROT)
+    r = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+    return np.asarray(q) @ r.T + np.array([loc.position.X, loc.position.Y])
 
 
 def check():
@@ -248,14 +257,13 @@ def export():
     import ezdxf
     outer, holes = outlines()
     names = name_loops()
-    for fname, mv, plate in (("bookmark_sunflower", (0.0, 0.0), False), ("sunflower_on_plate", on_plate().position, True)):
-        dx, dy = (mv[0], mv[1]) if isinstance(mv, tuple) else (mv.X, mv.Y)
+    for fname, tf, plate in (("bookmark_sunflower", np.asarray, False), ("sunflower_on_plate", plate_xy, True)):
         doc = ezdxf.new(units=4); msp = doc.modelspace()          # units 4 = mm
         for l in (["plate"] if plate else []) + ["outline", "cut", "engrave"]:
             doc.layers.add(l)
         if plate:
             msp.add_lwpolyline([(0, 0), (PLATE[0], 0), PLATE, (0, PLATE[1])], close=True, dxfattribs={"layer": "plate"})
-        poly = lambda q, layer: msp.add_lwpolyline([(x + dx, y + dy) for x, y in q], close=True, dxfattribs={"layer": layer})
+        poly = lambda q, layer: msp.add_lwpolyline([tuple(p) for p in tf(q)], close=True, dxfattribs={"layer": layer})
         poly(outer, "outline")                                    # one closed shape
         for q in holes:                                          # one closed shape per cut-out
             poly(q, "cut")
@@ -274,8 +282,8 @@ def export():
     # preview: the plate, the bookmark on it as cut, the engraved name
     mv = on_plate()
     outer, holes = outlines()
-    sh = lambda q: q + np.array([mv.position.X, mv.position.Y])
-    fig, ax = plt.subplots(figsize=(4, 6), dpi=150)
+    sh = plate_xy
+    fig, ax = plt.subplots(figsize=(7, 4) if PLATE[0] > PLATE[1] else (4, 6), dpi=150)
     ax.add_patch(plt.Rectangle((0, 0), *PLATE, fc="#e7d3a0", ec="#8a7340", lw=0.8))
     ax.fill(*sh(outer).T, fc="#cda44a", ec="#3b2a10", lw=0.4)
     for q in holes:
@@ -286,7 +294,7 @@ def export():
         ax.fill(*ring(g.outer_wire()).T, fc="#3b2a10", lw=0)
         for w in g.inner_wires():
             ax.fill(*ring(w).T, fc="#cda44a", lw=0)
-    x1 = mv.position.X + (outer[:, 0].max())
+    x1 = sh(outer)[:, 0].max()
     ax.text((x1 + PLATE[0]) / 2, PLATE[1] / 2, "left over", ha="center", va="center", color="#8a7340",
             fontsize=9)
     ax.set_xlim(-5, PLATE[0] + 5); ax.set_ylim(-5, PLATE[1] + 5); ax.set_aspect("equal")
