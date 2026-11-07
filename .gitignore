@@ -3,3 +3,4 @@ __pycache__/
 review/data/
 review/data_coaster/
 review/data_bookmark/
+review/data_bookmarks/

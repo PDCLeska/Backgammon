@@ -17,6 +17,7 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Tools | Ordered from Makera (2.5), + the laser module (Amir has it). |
 | **Coaster** | **First: the practice piece** (Amir), every board technique on cheap-to-lose wood (section 3). `cad/coaster.py check export`; viewer http://localhost:8771/review/?model=coaster. |
 | Bookmark | Capability test (Amir, 2026-11-06), not part of the board: 40 x 130 x 1 brass (or 3 mm wood, laser), ring tab, name band, our own olive branch cut through. `cad/bookmark.py check export`; viewer `?model=bookmark`. |
+| Sunflower bookmark | **The one to cut** (Amir, 2026-11-06): traced from his picture `art/sunflower.png` (the seller's design, for himself only), lines thinned to ~1.5, 0.8 mm brass, "Mrs. Poirier" (his son's teacher) engraved in Edwardian Script. On his 100 x 150 plate, 3 mm from the left edge, the rest kept for a second try. `cad/bookmark_sunflower.py check export` -> `export/bookmarks/`; viewer `?model=bookmarks`. |
 
 ### Wood to buy (Amir is in Cary, NC; no saw, so pieces are bought cut to size)
 Amir was writing to Capitol City Lumber (Raleigh, 919-832-6492) for these; nothing confirmed as bought yet.

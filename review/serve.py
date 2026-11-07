@@ -17,7 +17,8 @@ _procs = {}
 # model -> (source glob, builder script, data dir)
 MODELS = {"board": (os.path.join("cad", "*.py"), "build_data.py", "data"),
           "coaster": (os.path.join("cad", "*.py"), "build_coaster.py", "data_coaster"),
-          "bookmark": (os.path.join("cad", "*.py"), "build_bookmark.py", "data_bookmark")}
+          "bookmark": (os.path.join("cad", "*.py"), "build_bookmark.py", "data_bookmark"),
+          "bookmarks": (os.path.join("cad", "*.py"), "build_bookmarks.py", "data_bookmarks")}
 
 
 def sources(model):

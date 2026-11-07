@@ -96,7 +96,7 @@ def branch():
         p, a = at(t)
         ang = a - side * off
         tip = p + sl * np.array([np.cos(np.radians(ang)), np.sin(np.radians(ang))])
-        polys.append(ribbon(np.linspace(p, tip, 12), 1.1, 1.0))
+        polys.append(ribbon(np.linspace(p, tip, 12), 1.3, 1.2))
         polys.append(ellipse(tip + (ol / 2 - 0.6) * np.array([np.cos(np.radians(ang)), np.sin(np.radians(ang))]),
                              ang, ol, ow))
     return polys
@@ -130,23 +130,26 @@ def masks():
     return X, Y, outer & ~holes, holes
 
 
-def disk(d):
-    r = int(round(d / 2 / PX))
+def disk(d, px=PX):
+    r = int(round(d / 2 / px))
     y, x = np.ogrid[-r:r + 1, -r:r + 1]
     return x * x + y * y <= r * r
 
 
-def check():
-    X, Y, metal, holes = masks()
+def check(m=None, PX=PX):
+    """The cut checks on a 2D mask (X, Y, metal, holes) at PX mm a pixel: this bookmark's, or a traced one's."""
+    X, Y, metal, holes = m or masks()
     ok = True
-    print(f"bookmark {W:.0f} x {L:.0f} x {T:g} mm; bed {CARVERA_X:.0f} x {CARVERA_Y:.0f}: fits "
-          f"{'OK' if W + TOOL_D < CARVERA_Y and L + TOOL_D < CARVERA_X else 'NO'}")
+    ys, xs = np.where(metal)
+    w, l = (xs.max() - xs.min()) * PX, (ys.max() - ys.min()) * PX
+    print(f"bookmark {w:.0f} x {l:.0f} x {T:g} mm; bed {CARVERA_X:.0f} x {CARVERA_Y:.0f}: fits "
+          f"{'OK' if w + TOOL_D < CARVERA_Y and l + TOOL_D < CARVERA_X else 'NO'}")
     lab, n = ndimage.label(metal)
     n = int((ndimage.sum(metal, lab, range(1, n + 1)) * PX ** 2 > 0.1).sum())     # (single pixels at tips: raster noise)
     print(f"  one piece (nothing falls out when cut): {n} piece(s)  {'OK' if n == 1 else 'NO'}")
     ok &= n == 1
     # holes the end mill can't get into: what's left after opening with the tool's disk
-    miss = holes & ~ndimage.binary_opening(holes, disk(TOOL_D))
+    miss = holes & ~ndimage.binary_opening(holes, disk(TOOL_D, PX))
     ml, mn = ndimage.label(miss)
     # where a leaf meets the stem the corner is sharp: the tool leaves a small round fillet there (under ~1.2 mm2,
     # can't be seen). Anything bigger is a real slot too narrow for the tool: two shapes would be joined.
@@ -158,7 +161,7 @@ def check():
         print(f"    near x {X[s][0, 0]:.1f} .. {X[s][0, -1]:.1f}, y {Y[s][0, 0]:.1f} .. {Y[s][-1, 0]:.1f}")
     ok &= not big
     # brass thinner than MIN_W (leaf tips are always pointed: count only the longer bits)
-    thin = metal & ~ndimage.binary_opening(metal, disk(MIN_W))
+    thin = metal & ~ndimage.binary_opening(metal, disk(MIN_W, PX))
     tl, tn = ndimage.label(thin)
     longs = [s for s in ndimage.find_objects(tl) if max(s[0].stop - s[0].start, s[1].stop - s[1].start) * PX > 2.5]
     print(f"  brass thinner than {MIN_W:g} mm for more than 2.5 mm (besides the pointed tips): {len(longs)}  "
