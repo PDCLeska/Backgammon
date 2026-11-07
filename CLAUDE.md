@@ -30,6 +30,9 @@ cheap stock (pine / MDF) first. Start the next session from `docs/DOCUMENTATION.
 - **Coaster on the epoxy blank** (Amir, 2026-11-04; was the pin-flip test plate): 150 x 101 x 10 epoxy tooling board,
   90 x 90 coaster, pins + witness windows, open-sea map on the back, V-carve only, outline with tabs.
   `cad\pintest.py check export`. Docs section 4. Amir works **2D** in Makera Studio (two DXFs, two WCS).
+- **Sunflower bookmark** (Amir, 2026-11-06, next to cut): 0.8 mm brass on his 100 x 150 plate,
+  `cad\bookmark_sunflower.py check export` -> `export\bookmarks\`, viewer `?model=bookmarks`.
+  **Read `docs/HANDOFF.md` first** (what the desktop session did, and what's open).
 - Back map: `art/topo.py` (GMRT data -> contours -> `art/back_map.json`, preview png, `export/bg_back_*.dxf`).
 - Viewer: `review\serve.py --port=8771` -> http://localhost:8771/review/ (rebuilds on save; fold slider, Carvera bed outline).
 - Run `check` before handing over any geometry change; say which files changed.
