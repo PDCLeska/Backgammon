@@ -19,10 +19,10 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
 - **The name without the font:** `art/sunflower_name.json` holds the letter outlines (Edwardian Script, from the
   desktop's export; overlaps resolved even-odd). `name_loops()` uses the font when installed (and refreshes the json),
   else the json. All letters valid; STEP valid.
-- **Amir's plan (2026-11-07): thin the plate first, then cut a 0.8 mm bookmark.** `STOCK_T = 3.0`, `T = 0.8`,
-  `FACE_D = 2.2`. The DXF has a `face` layer: the bookmark's outline grown by `FACE_OFF` 2.5 mm (room for the 1 mm bit
-  and its step), pocketed 0 -> 2.2 with the 1/8" metal end mill. Then everything starts on that floor: `engrave`
-  2.2 -> 2.4, `cut` (contour inside) and `outline` (contour outside, tabs) 2.2 -> 3.0 with the **1 mm** end mill
+- **Amir's plan (2026-11-07): thin the plate first, then cut a 0.9 mm bookmark** (Amir: 0.9). `STOCK_T = 3.0`, `T = 0.9`,
+  `FACE_D = 2.1`. The DXF has a `face` layer: the bookmark's outline grown by `FACE_OFF` 2.5 mm (room for the 1 mm bit
+  and its step), pocketed 0 -> 2.1 with the 3.175 x 12 metal end mill (shortest = stiffest). Then everything starts on that floor:
+  `engrave` 2.1 -> 2.3, `cut` (contour inside) and `outline` (contour outside, tabs) 2.1 -> 3.0 with the **1 mm** end mill
   (its ~3 mm flute reaches). The design stays as drawn (no roughing / rounded tips). `MARGIN` now 6 (the pocket is
   3.5 mm in from the plate's edges: bit and collet clear of the L bracket). Time: thinning ~1-1.5 h (~11 cm3 of
   brass), cuts ~30-40 min. Full-area painter's tape + CA under the bookmark area (slugs stay put).

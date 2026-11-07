@@ -25,7 +25,7 @@ GOLD_SAT = 0.35                 # saturation above this = gold (the background i
 THIN = 0.25                     # mm taken off each side of the inner lines: the picture's ~2.0 mm lines -> ~1.5
 FRAME_KEEP = 2.6                # the outer frame (about 3 mm wide) and the name band keep their full width
 STOCK_T = 3.0                   # Amir's brass plate (2026-11-07)
-T = 0.8                         # the bookmark: the plate is first thinned to this where it goes (Amir's plan)
+T = 0.9                         # (Amir, 2026-11-07: 0.9) the bookmark: the plate is first thinned to this where it goes (Amir's plan)
 FACE_D = STOCK_T - T            # 2.2: the thinning pocket's depth; every bookmark cut starts there
 FACE_OFF = 2.5                  # the thinning pocket reaches this far past the bookmark's outline (room for the bit)
 PLATE = (200.0, 100.0)          # Amir's brass plate, x by y (mm) (2026-11-07: 200 x 100, the long side along X)
