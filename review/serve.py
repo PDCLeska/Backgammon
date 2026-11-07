@@ -16,7 +16,8 @@ _lock = threading.Lock()
 _procs = {}
 # model -> (source glob, builder script, data dir)
 MODELS = {"board": (os.path.join("cad", "*.py"), "build_data.py", "data"),
-          "coaster": (os.path.join("cad", "*.py"), "build_coaster.py", "data_coaster")}
+          "coaster": (os.path.join("cad", "*.py"), "build_coaster.py", "data_coaster"),
+          "bookmark": (os.path.join("cad", "*.py"), "build_bookmark.py", "data_bookmark")}
 
 
 def sources(model):

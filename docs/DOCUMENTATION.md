@@ -16,6 +16,7 @@ specs and tests; Claude writes, runs and verifies everything (same way of workin
 | Cut files | `make.py export` -> `export/`: halves, checker (STEP / STL); `bg_points_left/right.dxf` (point, rim line and diamond outlines, a layer per colour); `bg_back_left/right.dxf` (the map, per half). No toolpaths yet. |
 | Tools | Ordered from Makera (2.5), + the laser module (Amir has it). |
 | **Coaster** | **First: the practice piece** (Amir), every board technique on cheap-to-lose wood (section 3). `cad/coaster.py check export`; viewer http://localhost:8771/review/?model=coaster. |
+| Bookmark | Capability test (Amir, 2026-11-06), not part of the board: 40 x 130 x 1 brass (or 3 mm wood, laser), ring tab, name band, our own olive branch cut through. `cad/bookmark.py check export`; viewer `?model=bookmark`. |
 
 ### Wood to buy (Amir is in Cary, NC; no saw, so pieces are bought cut to size)
 Amir was writing to Capitol City Lumber (Raleigh, 919-832-6492) for these; nothing confirmed as bought yet.

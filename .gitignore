@@ -2,3 +2,4 @@ __pycache__/
 *.tmp
 review/data/
 review/data_coaster/
+review/data_bookmark/
