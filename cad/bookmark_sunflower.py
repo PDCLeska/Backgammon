@@ -32,6 +32,9 @@ FONT_FILE = "C:/Windows/Fonts/ITCEDSCR.TTF"   # Edwardian Script: the closest in
 NAME_MARGIN = 1.5               # the name fits inside the blank band with this much brass round it
 TEXT_D = 0.2                    # engraving depth
 TEXT_H = None                   # font size, set by name_text() to fit the band
+HOLE_D = 6.0                    # the string hole (Amir, 2026-11-07: a 2.6 mm leather cord; 6 takes it doubled, as a loop)
+RING = 3.0                      # brass round the hole (the tab's radius = HOLE_D / 2 + RING)
+NECK = 2.5                      # brass between the hole and the first cut-out under it (the tab moves up for it)
 SPECK = 0.3                     # mm2: smaller gold or white bits are picture noise
 SIMPLIFY = 0.02                 # mm: outlines kept this close to the trace
 
@@ -104,7 +107,25 @@ def outlines():
             rings.append((area, q))
     plt.close(fig)
     rings.sort(key=lambda r: -r[0])
-    return rings[0][1], [q for _, q in rings[1:]]
+    return retab(rings[0][1], [q for _, q in rings[1:]])
+
+
+def retab(outer, holes):
+    """The traced ring tab (~4 mm hole, 2 mm of brass) -> a round HOLE_D hole with RING of brass round it, moved up so
+    NECK of brass is left above the cut-outs under it; the tab joins the frame (union)."""
+    from shapely.geometry import Polygon, Point
+    old = max(holes, key=lambda q: q[:, 1].mean())               # the string hole: the highest cut-out
+    rest = [h for h in holes if h is not old]
+    cx = old[:, 0].mean()
+    under = max(h[np.abs(h[:, 0] - cx) < HOLE_D / 2 + 1][:, 1].max() for h in rest
+                if (np.abs(h[:, 0] - cx) < HOLE_D / 2 + 1).any())
+    cy = max(old[:, 1].mean(), under + NECK + HOLE_D / 2)
+    body = Polygon(outer).buffer(0).union(Point(cx, cy).buffer(HOLE_D / 2 + RING, 128))
+    if body.geom_type != "Polygon":
+        body = max(body.geoms, key=lambda g: g.area)
+    ring = lambda g: np.array(g.exterior.coords)[:-1]
+    hole = np.array(Point(cx, cy).buffer(HOLE_D / 2, 128).exterior.coords)[:-1]
+    return ring(body.simplify(SIMPLIFY)), [hole] + rest
 
 
 def band():
@@ -179,10 +200,10 @@ def build():
 
 def on_plate():
     """Where the bookmark goes on the plate: the move from its own frame (centred on 0,0) to the plate's (origin at
-    the front-left corner): MARGIN from the left edge, centred along the length."""
+    the front-left corner): MARGIN from the left and front edges."""
     from build123d import Pos
     bb = face2d().bounding_box()
-    return Pos(MARGIN - bb.min.X, (PLATE[1] - bb.size.Y) / 2 - bb.min.Y, 0)
+    return Pos(MARGIN - bb.min.X, MARGIN - bb.min.Y, 0)     # in the front-left corner (Amir): the most plate left over
 
 
 def check():
@@ -204,6 +225,11 @@ def check():
     fits = (bb.min.X >= bm.TOOL_D and bb.min.Y >= bm.TOOL_D and bb.max.X <= PLATE[0] - bm.TOOL_D
             and bb.max.Y <= PLATE[1] - bm.TOOL_D)
     rest = PLATE[0] - bb.max.X - bm.TOOL_D
+    top = PLATE[1] - bb.max.Y - bm.TOOL_D
+    o, hs = outlines()
+    h = hs[0]
+    print(f"string hole {np.ptp(h[:, 0]):.1f} mm, brass round it {RING:g}, above the cut-outs {NECK:g}; bookmark "
+          f"{bb.size.X:.1f} x {bb.size.Y:.1f}; left over: {rest:.0f} x {PLATE[1]:.0f} beside it + {bb.size.X:.0f} x {top:.0f} above it")
     print(f"on the {PLATE[0]:.0f} x {PLATE[1]:.0f} plate: x {bb.min.X:.1f} .. {bb.max.X:.1f}, y {bb.min.Y:.1f} .. "
           f"{bb.max.Y:.1f}  {'OK' if fits else 'NO'}; left for a second try: {rest:.1f} x {PLATE[1]:.0f} mm "
           f"({'room for another' if rest >= bb.size.X + 2 * MARGIN else 'NOT enough for another'})")
@@ -261,7 +287,7 @@ def export():
         for w in g.inner_wires():
             ax.fill(*ring(w).T, fc="#cda44a", lw=0)
     x1 = mv.position.X + (outer[:, 0].max())
-    ax.text((x1 + PLATE[0]) / 2, PLATE[1] / 2, "left for\na second try", ha="center", va="center", color="#8a7340",
+    ax.text((x1 + PLATE[0]) / 2, PLATE[1] / 2, "left over", ha="center", va="center", color="#8a7340",
             fontsize=9)
     ax.set_xlim(-5, PLATE[0] + 5); ax.set_ylim(-5, PLATE[1] + 5); ax.set_aspect("equal")
     ax.set_xlabel("mm"); ax.set_title(f"Brass plate {PLATE[0]:.0f} x {PLATE[1]:.0f} x {T:g} mm (origin front-left)",

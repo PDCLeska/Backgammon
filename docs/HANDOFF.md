@@ -9,8 +9,11 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
 ---
 
 ## 0. Update from the cloud session (2026-11-07)
-- **Plate now 100 x 200 x 3 mm brass** (Amir). `T = 3.0`, `PLATE = (100, 200)`. The bookmark stays 40.1 x 115.3, 3 mm
-  from the left edge, centred on the 200 length (x 3.0-43.1, y 42.4-157.6); 55.9 x 200 left for a second try.
+- **Plate now 100 x 200 x 3 mm brass** (Amir). `T = 3.0`, `PLATE = (100, 200)`. The bookmark is now in the plate's
+  **front-left corner**, 3 mm from both edges (x 3.0-43.1, y 3.0-122.8): left over 56 x 200 beside it + 40 x 76 above.
+- **String hole 6 mm** (Amir's leather cord is 2.6 mm: 6 takes it doubled, as a loop), 3 mm of brass round it, 2.5 mm
+  above the cut-outs under it; the tab moved up, the bookmark is now **40.1 x 119.8** (`retab()`: `HOLE_D`, `RING`,
+  `NECK`; needs `shapely`, now in requirements.txt).
 - **DXF now closed shapes** (`sunflower_on_plate.dxf`): `outline` 1 closed polyline, `cut` 47 closed polylines (one per
   cut-out), `engrave` 18 closed letter outlines, `plate` reference. (Was 2,410 loose lines + 377 splines.)
 - **The name without the font:** `art/sunflower_name.json` holds the letter outlines (Edwardian Script, from the
@@ -22,7 +25,6 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
   Outline with the 1.5 (outside, tabs). Contour, not pocket, for the finish: pocketing all with the small bit ~3 h+.
   Estimate ~2-3 h total; test speeds on a scrap corner. Full-area painter's tape + CA under the bookmark area so the
   slugs stay put (thin brass peels off; not like the stiff tooling board).
-- Ring hole: ~4.0 mm (traced, 3.8 x 4.1), ~2 mm of brass round it: a 1.5-2 mm cord singly. Could be made a clean 4.5.
 - Finish: sand the bottom burrs on 400/600 on glass, polish (Brasso / Flitz), alcohol, then Incralac / clear lacquer or
   Renaissance Wax; optional black paint in the name before polishing.
 
