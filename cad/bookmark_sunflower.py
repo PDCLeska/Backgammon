@@ -24,8 +24,8 @@ BAND_PX = (50, 590, 210, 1490)  # the name band in the picture (x0, y0, x1, y1 p
 GOLD_SAT = 0.35                 # saturation above this = gold (the background is white / grey)
 THIN = 0.25                     # mm taken off each side of the inner lines: the picture's ~2.0 mm lines -> ~1.5
 FRAME_KEEP = 2.6                # the outer frame (about 3 mm wide) and the name band keep their full width
-T = 0.8                         # brass sheet (Amir)
-PLATE = (100.0, 150.0)          # Amir's brass plate, x by y (mm)
+T = 3.0                         # brass sheet (Amir, 2026-11-07: 3 mm; was 0.8)
+PLATE = (100.0, 200.0)          # Amir's brass plate, x by y (mm) (2026-11-07: 100 x 200; was 100 x 150)
 MARGIN = 3.0                    # bookmark to the plate's left edge: the 1 mm end mill passes outside the outline
 NAME = "Mrs. Poirier"          # Amir's son's teacher
 FONT_FILE = "C:/Windows/Fonts/ITCEDSCR.TTF"   # Edwardian Script: the closest installed to Amir's sample
@@ -128,6 +128,40 @@ def name_text():
     return Pos((bx0 + bx1) / 2 - c.X, (by0 + by1) / 2 - c.Y) * t
 
 
+NAME_JSON = os.path.join(ROOT, "art", "sunflower_name.json")   # the name's letter outlines, for computers without the font
+
+
+def name_loops():
+    """The name as closed letter outlines (bookmark frame, mm): from the font when it is installed (and saved to
+    NAME_JSON), else from NAME_JSON (the laptop and the cloud have no Edwardian Script)."""
+    import json
+    if os.path.exists(FONT_FILE):
+        ring = lambda w: [(round(v.X, 4), round(v.Y, 4)) for v in w.positions(np.linspace(0, 1, 200))[:-1]]
+        loops = [ring(w) for f in name_text().faces() for w in [f.outer_wire(), *f.inner_wires()]]
+        json.dump(dict(name=NAME, font=os.path.basename(FONT_FILE), loops=loops), open(NAME_JSON, "w"))
+        return [np.array(l) for l in loops]
+    d = json.load(open(NAME_JSON))
+    assert d["name"] == NAME, f"{NAME_JSON} holds {d['name']!r}: run once where {FONT_FILE} is installed"
+    return [np.array(l) for l in d["loops"]]
+
+
+def name_faces():
+    """The letters as faces (counters as holes), from name_loops()."""
+    from build123d import Face, Wire
+    from matplotlib.path import Path
+    loops = name_loops()
+    area = lambda q: 0.5 * abs(np.dot(q[:, 0], np.roll(q[:, 1], 1)) - np.dot(q[:, 1], np.roll(q[:, 0], 1)))
+    inside = lambda a, b: Path(b).contains_point(a[0])            # loop a inside loop b
+    depth = [sum(inside(a, b) for b in loops if b is not a) for a in loops]
+    wire = lambda q: Wire.make_polygon([(x, y, 0) for x, y in q], close=True)
+    faces = []
+    for a, da in zip(loops, depth):
+        if da % 2 == 0:
+            holes = [b for b, db in zip(loops, depth) if db == da + 1 and inside(b, a)]
+            faces.append(Face(wire(a), [wire(h) for h in holes]))
+    return faces
+
+
 def face2d():
     from build123d import Face, Wire
     outer, holes = outlines()
@@ -138,7 +172,9 @@ def face2d():
 def build():
     from build123d import extrude, Pos
     body = extrude(face2d(), T)
-    return body - Pos(0, 0, T - TEXT_D) * extrude(name_text(), TEXT_D + 0.01)
+    for f in name_faces():
+        body -= Pos(0, 0, T - TEXT_D) * extrude(f, TEXT_D + 0.01)
+    return body
 
 
 def on_plate():
@@ -158,8 +194,9 @@ def check():
     bx0, bx1, by0, by1 = band()
     inner = (abs(X) < W / 2 - 4) & ~((X < bx1 + 0.5) & (Y > by0 - 0.5) & (Y < by1 + 0.5))
     lw = 2 * dt[ridge & inner]
+    nl = np.vstack(name_loops())
     print(f"inner lines {np.median(lw):.2f} mm wide (most {np.percentile(lw, 10):.2f} to {np.percentile(lw, 90):.2f}), "
-          f"plate {T:g} mm; name {NAME!r} {name_text().bounding_box().size.Y:.0f} mm long")
+          f"plate {T:g} mm; name {NAME!r} {np.ptp(nl[:, 1]):.0f} mm long")
     bm.T = T
     ok = bm.check(m, PX=px)
     # on the plate: inside it with the tool's room all round, and the rest wide enough for a second try
@@ -182,25 +219,32 @@ def export():
     from build123d import ExportDXF, export_step, export_stl, Unit, Rectangle, Pos
     out = os.path.join(ROOT, "export", "bookmarks")
     os.makedirs(out, exist_ok=True)
-    f, name = face2d(), name_text()
-    for fname, move, plate in (("bookmark_sunflower", Pos(0, 0, 0), False), ("sunflower_on_plate", on_plate(), True)):
-        d = ExportDXF(unit=Unit.MM)
+    import ezdxf
+    outer, holes = outlines()
+    names = name_loops()
+    for fname, mv, plate in (("bookmark_sunflower", (0.0, 0.0), False), ("sunflower_on_plate", on_plate().position, True)):
+        dx, dy = (mv[0], mv[1]) if isinstance(mv, tuple) else (mv.X, mv.Y)
+        doc = ezdxf.new(units=4); msp = doc.modelspace()          # units 4 = mm
+        for l in (["plate"] if plate else []) + ["outline", "cut", "engrave"]:
+            doc.layers.add(l)
         if plate:
-            d.add_layer("plate")
-            d.add_shape(Pos(PLATE[0] / 2, PLATE[1] / 2) * Rectangle(*PLATE).wire(), layer="plate")
-        d.add_layer("outline"); d.add_layer("cut"); d.add_layer("engrave")
-        g = move * f
-        d.add_shape(g.outer_wire(), layer="outline")
-        d.add_shape(g.inner_wires(), layer="cut")
-        d.add_shape((move * name).faces(), layer="engrave")
-        d.write(os.path.join(out, fname + ".dxf"))
+            msp.add_lwpolyline([(0, 0), (PLATE[0], 0), PLATE, (0, PLATE[1])], close=True, dxfattribs={"layer": "plate"})
+        poly = lambda q, layer: msp.add_lwpolyline([(x + dx, y + dy) for x, y in q], close=True, dxfattribs={"layer": layer})
+        poly(outer, "outline")                                    # one closed shape
+        for q in holes:                                          # one closed shape per cut-out
+            poly(q, "cut")
+        for q in names:                                          # closed letter outlines (counters too)
+            poly(q, "engrave")
+        doc.saveas(os.path.join(out, fname + ".dxf"))
+    f = face2d()
     s = build()
     export_step(s, os.path.join(out, "bookmark_sunflower.step"))
     export_stl(s, os.path.join(out, "bookmark_sunflower.stl"), tolerance=0.01, angular_tolerance=0.1)
     bb = s.bounding_box()
     print(f"  export/bookmarks/bookmark_sunflower.dxf ({len(f.inner_wires())} cut-outs), .step, .stl; "
           f"{bb.size.X:.1f} x {bb.size.Y:.1f} x {bb.size.Z:.1f} mm, valid: {s.is_valid}")
-    print(f"  export/bookmarks/sunflower_on_plate.dxf (origin: the plate's front-left corner)")
+    print(f"  export/bookmarks/sunflower_on_plate.dxf (origin: the plate's front-left corner; closed shapes: 1 outline,"
+          f" {len(holes)} cut-outs, {len(names)} letter outlines)")
     # preview: the plate, the bookmark on it as cut, the engraved name
     mv = on_plate()
     outer, holes = outlines()
@@ -211,7 +255,8 @@ def export():
     for q in holes:
         ax.fill(*sh(q).T, fc="#f4f1ea", lw=0)
     ring = lambda w: np.array([(v.X, v.Y) for v in w.positions(np.linspace(0, 1, 400))])
-    for g in (mv * name).faces():
+    for g in name_faces():
+        g = mv * g
         ax.fill(*ring(g.outer_wire()).T, fc="#3b2a10", lw=0)
         for w in g.inner_wires():
             ax.fill(*ring(w).T, fc="#cda44a", lw=0)
