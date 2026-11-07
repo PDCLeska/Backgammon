@@ -30,6 +30,7 @@ Amir was writing to Capitol City Lumber (Raleigh, 919-832-6492) for these; nothi
 Measure the bed first: if it is really 360 x 240, the board blanks can be 8 x 12.
 
 ### Next steps
+**Now (2026-11-04): the coaster on the epoxy blank** (section 4): 90 x 90, every technique, 2D in Makera Studio.
 0. **The coaster first** (section 3): learn the settings there, then the board. Amir wants something more basic before
    that: a 100 x 100 MDF test plate (a 3 mm pocket, V-carved lines and one point, the outline last with tabs; not
    modelled yet), then the coaster in walnut without epoxy, then the full coaster.
@@ -174,3 +175,62 @@ flip are learned on a piece that costs little to lose. Make it in pine / poplar 
   power / speed for a good line on walnut.
 - **Hot cups:** most tabletop epoxies soften at 50-60 C, and a fresh coffee mug's base can be hotter: use a
   heat-resistant epoxy for the coaster (or accept a faint ring on the points); for the board it doesn't matter.
+
+---
+
+## 4. The coaster on the epoxy blank (Amir, 2026-11-04)
+
+The practice piece, every technique, on Makera's epoxy tooling board **150 x 101 x 10** (Amir measured 150 x 101).
+Was the pin-flip test plate; Amir: "this is the coaster", do all of it. `cad/pintest.py check export`; pictures
+`art/pintest.png` (both sides), `art/pintest_setup.png` (on the bed). Amir: **2D** in Makera Studio (two DXFs, two WCS).
+
+- **Coaster 90 x 90**, corners r8, 10 thick, **both edges chamfered 1.2** (Amir: back as the face; V-bit, 2D Chamfer) (the 110.5 design doesn't fit the 101 blank).
+- **Face:** field 72 square, 3 deep; 6 points 22.5 x 27 (24 pitch; the board's are 27.5: Amir chose smaller points to
+  keep 3 a side), V-carved 1.4 below the floor; the diamond (12 x 6, 1.4 deep); the rim line (1.6 wide, 3 off the
+  field wall). **No epoxy this time** (Amir): V-carve only.
+- **Bits: all on the 1/8" collet today** (Amir: no collet change): 1/8" end mill, the set's engraving bit, the set's
+  small 90 deg V-bit (reaches ~1.5: hence 1.4 deep V-cuts and 1.2 chamfers). Amir has the 6 mm collet, the 6 mm 90 deg
+  chamfering bit and the 6 x 22 O-flute: the collet change is for the next project (the board).
+- **Back:** 76 mm square of open sea, no islands (Amir): south of the Saronic Gulf, 23.77 E 37.15 N, 157-1079 m deep,
+  a ridge and small seamounts, a line every 100 m (32 lines), engraved 0.4 deep with the engraving bit.
+- **Pins:** the Carvera Air's own 4 mm dowel pins. Holes at **X 13 and X 131, Y 50.5** (front-left zero), the same spot
+  in both setups, on the flip line; 13 and 19 mm from the ends, so a wrong turn is 6 mm off and can't go on.
+  Through the blank + 1 mm into the 2 mm spoil board (the pins only locate; tape + CA hold).
+- **Witness windows** (outside the coaster): an 8 mm square 6 deep from the back, a 5 mm square 5 deep from the face.
+  Look in from the back: the ring round the 5 mm hole is 1.5 all round if the flip is perfect.
+- **Outline:** 2D Contour outside, 10.3 deep (0.3 into the spoil board), 4 tabs (5 long, 1.5 high, mid-side).
+
+Files (origin = the blank's front-left corner as it lies; both setups):
+| File | Setup | Layers -> paths |
+|---|---|---|
+| `export/pintest_1_back.dxf` | WCS1, back up | `pins` -> 2D Pocket 11 deep, 1/8" end mill; `witness` -> 2D Pocket 6 deep; `engrave` -> engrave 0.4, engraving bit; `outline` -> 2D Chamfer 1.2, the set's 90 deg V-bit (only the chamfer here, no cut through) |
+| `export/pintest_2_face.dxf` | WCS2, face up | `field` -> 2D Pocket 3; `witness` -> 2D Pocket 5; `points` -> V-carve 1.4 below the field floor (start at 3), the set's 90 deg V-bit; `diamond` -> V-carve 1.4 (start at 3); `rim_line` -> V-carve (from the top); `outline` -> 2D Chamfer 1.2, then 2D Contour outside 10.3 with tabs; `pins` = reference only |
+| `export/pintest_pins.dxf` | - | the blank + the 2 pin circles only |
+| `export/pintest.step` / `.stl` | - | the finished coaster, to look at (the map lines are not in it) |
+
+Order:
+1. **Spoil board** (2 mm MDF) flat on the bed, the **L bracket** at Anchor 1 (front-left) screwed through it; the far
+   end held down. It stays put until the coaster is done.
+2. **Setup 1, back up:** blank into the bracket corner, painter's tape + CA. XY zero = the bracket corner (Anchor 1,
+   offset 0); Z zero on the top. Cut WCS1: pins, back witnesses (1/8" end mill), the map (engraving bit), the back edge chamfer (V-bit).
+3. **Flip** front to back (about the pin line). Pins into the spoil board's holes, blank down on them and into the
+   bracket corner, tape + CA again. If it won't go on the pins, it's turned the wrong way.
+4. **Setup 2, face up:** same XY zero (don't re-probe XY), new Z zero on the top. Cut WCS2: field, face witnesses
+   (1/8" end mill); points, diamond, rim line (90 deg V-bit); chamfer on the outline (V-bit); outline with tabs
+   (1/8" end mill) last.
+5. Off: cut the tabs (knife / flush saw), sand. Read the witness rings from the back; note the flip error here.
+
+Note down for the board: V-bit depth vs real width, how the tooling board cuts (finish, chips), the flip error.
+
+**What happened (2026-11-05, side 1):**
+- Pin holes at 4.0 were **too tight** for the 4 mm pins, and 1 mm into the spoil board **didn't hold** them. Amir did the
+  flip on the **L bracket** instead (front to back: X exact, Y as exact as the blank's 101 width). Files now: holes 4.1,
+  2.5 into the two stacked 2 mm spoil boards (1.5 left above the bed).
+- Makera Studio's **2D Chamfer** path wrote G-code with no feed ("Alarm: Undefined feed rate", twice): use a **2D Contour,
+  on line** with the 90 deg bit for chamfers instead.
+- Studio has **no V-carve** path: the points / diamond were pocketed with the flat 1/8" end mill (rounded tips). For the
+  board's epoxy points, find a V-carve route (another CAM, or Studio's 3D) before cutting walnut.
+- Double-sided tape over the whole bottom held far too hard: use 3-4 short strips.
+- Auto leveling found the blank's top 0.22 mm out of level over 137 x 91: keep leveling on for shallow cuts.
+- Face file: `rim_center` layer added = the rim line's centre (one 2D Contour on line, 90 deg bit, 0.75 deep fills the
+  1.6 band between the two `rim_line` edges).
