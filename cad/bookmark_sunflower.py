@@ -24,10 +24,13 @@ BAND_PX = (50, 590, 210, 1490)  # the name band in the picture (x0, y0, x1, y1 p
 GOLD_SAT = 0.35                 # saturation above this = gold (the background is white / grey)
 THIN = 0.25                     # mm taken off each side of the inner lines: the picture's ~2.0 mm lines -> ~1.5
 FRAME_KEEP = 2.6                # the outer frame (about 3 mm wide) and the name band keep their full width
-T = 3.0                         # brass sheet (Amir, 2026-11-07: 3 mm; was 0.8)
+STOCK_T = 3.0                   # Amir's brass plate (2026-11-07)
+T = 0.8                         # the bookmark: the plate is first thinned to this where it goes (Amir's plan)
+FACE_D = STOCK_T - T            # 2.2: the thinning pocket's depth; every bookmark cut starts there
+FACE_OFF = 2.5                  # the thinning pocket reaches this far past the bookmark's outline (room for the bit)
 PLATE = (200.0, 100.0)          # Amir's brass plate, x by y (mm) (2026-11-07: 200 x 100, the long side along X)
 ROT = -90                       # the bookmark on the plate turned this much (Amir: rotate 90): tab right, name upright
-MARGIN = 3.0                    # bookmark to the plate's left edge: the 1 mm end mill passes outside the outline
+MARGIN = 6.0                    # bookmark to the plate's left edge: the 1 mm end mill passes outside the outline
 NAME = "Mrs. Poirier"          # Amir's son's teacher
 FONT_FILE = "C:/Windows/Fonts/ITCEDSCR.TTF"   # Edwardian Script: the closest installed to Amir's sample
 NAME_MARGIN = 1.5               # the name fits inside the blank band with this much brass round it
@@ -207,6 +210,14 @@ def on_plate():
     return Pos(MARGIN - bb.min.X, MARGIN - bb.min.Y, 0) * Rot(0, 0, ROT)   # front-left corner (Amir): most plate left
 
 
+def face_shape():
+    """The thinning pocket on the plate (plate frame): the bookmark's outline grown by FACE_OFF."""
+    from shapely.geometry import Polygon
+    outer, _ = outlines()
+    g = Polygon(plate_xy(outer)).buffer(FACE_OFF, 64).simplify(SIMPLIFY)
+    return np.array(g.exterior.coords)[:-1]
+
+
 def plate_xy(q):
     """Points in the bookmark's frame -> the plate's (on_plate(): turned ROT, then moved into the corner)."""
     loc = on_plate()
@@ -243,6 +254,11 @@ def check():
           f"{bb.max.Y:.1f}  {'OK' if fits else 'NO'}; left for a second try: {rest:.1f} x {PLATE[1]:.0f} mm "
           f"({'room for another' if rest >= bb.size.X + 2 * MARGIN else 'NOT enough for another'})")
     ok &= fits
+    fs = face_shape()
+    edge = min(fs[:, 0].min(), fs[:, 1].min(), PLATE[0] - fs[:, 0].max(), PLATE[1] - fs[:, 1].max())
+    print(f"thinning pocket {FACE_D:.1f} deep (plate {STOCK_T:g} -> bookmark {T:g}), {FACE_OFF:g} past the outline: "
+          f"{np.ptp(fs[:, 0]):.0f} x {np.ptp(fs[:, 1]):.0f}, {edge:.1f} from the plate's edges  {'OK' if edge >= 3 else 'TOO CLOSE'}")
+    ok &= edge >= 3
     print("ALL OK" if ok else "SOMETHING TO FIX")
     return ok
 
@@ -259,10 +275,11 @@ def export():
     names = name_loops()
     for fname, tf, plate in (("bookmark_sunflower", np.asarray, False), ("sunflower_on_plate", plate_xy, True)):
         doc = ezdxf.new(units=4); msp = doc.modelspace()          # units 4 = mm
-        for l in (["plate"] if plate else []) + ["outline", "cut", "engrave"]:
+        for l in (["plate", "face"] if plate else []) + ["outline", "cut", "engrave"]:
             doc.layers.add(l)
         if plate:
             msp.add_lwpolyline([(0, 0), (PLATE[0], 0), PLATE, (0, PLATE[1])], close=True, dxfattribs={"layer": "plate"})
+            msp.add_lwpolyline([tuple(p) for p in face_shape()], close=True, dxfattribs={"layer": "face"})
         poly = lambda q, layer: msp.add_lwpolyline([tuple(p) for p in tf(q)], close=True, dxfattribs={"layer": layer})
         poly(outer, "outline")                                    # one closed shape
         for q in holes:                                          # one closed shape per cut-out
@@ -278,13 +295,15 @@ def export():
     print(f"  export/bookmarks/bookmark_sunflower.dxf ({len(f.inner_wires())} cut-outs), .step, .stl; "
           f"{bb.size.X:.1f} x {bb.size.Y:.1f} x {bb.size.Z:.1f} mm, valid: {s.is_valid}")
     print(f"  export/bookmarks/sunflower_on_plate.dxf (origin: the plate's front-left corner; closed shapes: 1 outline,"
-          f" {len(holes)} cut-outs, {len(names)} letter outlines)")
+          f" {len(holes)} cut-outs, {len(names)} letter outlines, the thinning pocket 'face')")
+    print(f"  depths: face 0 -> {FACE_D:.1f}; engrave {FACE_D:.1f} -> {FACE_D + TEXT_D:.1f}; cut + outline {FACE_D:.1f} -> {STOCK_T:.1f}")
     # preview: the plate, the bookmark on it as cut, the engraved name
     mv = on_plate()
     outer, holes = outlines()
     sh = plate_xy
     fig, ax = plt.subplots(figsize=(7, 4) if PLATE[0] > PLATE[1] else (4, 6), dpi=150)
     ax.add_patch(plt.Rectangle((0, 0), *PLATE, fc="#e7d3a0", ec="#8a7340", lw=0.8))
+    ax.fill(*face_shape().T, fc="#d9c08a", ec="#8a7340", lw=0.5, ls="--")
     ax.fill(*sh(outer).T, fc="#cda44a", ec="#3b2a10", lw=0.4)
     for q in holes:
         ax.fill(*sh(q).T, fc="#f4f1ea", lw=0)
@@ -298,7 +317,7 @@ def export():
     ax.text((x1 + PLATE[0]) / 2, PLATE[1] / 2, "left over", ha="center", va="center", color="#8a7340",
             fontsize=9)
     ax.set_xlim(-5, PLATE[0] + 5); ax.set_ylim(-5, PLATE[1] + 5); ax.set_aspect("equal")
-    ax.set_xlabel("mm"); ax.set_title(f"Brass plate {PLATE[0]:.0f} x {PLATE[1]:.0f} x {T:g} mm (origin front-left)",
+    ax.set_xlabel("mm"); ax.set_title(f"Brass plate {PLATE[0]:.0f} x {PLATE[1]:.0f} x {STOCK_T:g}: thinned to {T:g} (dashed), bookmark cut there",
                                       fontsize=9)
     fig.savefig(os.path.join(out, "sunflower_on_plate.png"), bbox_inches="tight")
     plt.close(fig)

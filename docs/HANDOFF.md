@@ -10,7 +10,7 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
 
 ## 0. Update from the cloud session (2026-11-07)
 - **Plate now 200 x 100 x 3 mm brass**, long side along X (Amir: "rotate 90"). `T = 3.0`, `PLATE = (200, 100)`, `ROT = -90`: bookmark lying along X, tab to the right, name reading upright along the back. It is in the plate's
-  **front-left corner**, 3 mm from both edges (x 3.0-122.8, y 3.0-43.1): left over 200 x 54 behind it + 74 x 40 beside.
+  **front-left corner**, 6 mm from both edges (x 6.0-125.8, y 6.0-46.1).
 - **String hole 6 mm** (Amir's leather cord is 2.6 mm: 6 takes it doubled, as a loop), 3 mm of brass round it, 2.5 mm
   above the cut-outs under it; the tab moved up, the bookmark is now **40.1 x 119.8** (`retab()`: `HOLE_D`, `RING`,
   `NECK`; needs `shapely`, now in requirements.txt).
@@ -19,12 +19,13 @@ Both computers' work is merged on GitHub (`main`, merge commit `1ba6ec2`): the l
 - **The name without the font:** `art/sunflower_name.json` holds the letter outlines (Edwardian Script, from the
   desktop's export; overlaps resolved even-odd). `name_loops()` uses the font when installed (and refreshes the json),
   else the json. All letters valid; STEP valid.
-- **Bits for 3 mm brass:** the 1 mm end mill is too short (~3 mm flute). Plan: **rough** the cut-outs with the 1/8"
-  (3.175) **metal** end mill (2D Pocket: clears 86 % of the cut-out area), **finish** with the **1.5 x 8 mm** metal end
-  mill (2D Contour inside; 9 spots end slightly rounder at petal tips / corners; scaling up doesn't remove them).
-  Outline with the 1.5 (outside, tabs). Contour, not pocket, for the finish: pocketing all with the small bit ~3 h+.
-  Estimate ~2-3 h total; test speeds on a scrap corner. Full-area painter's tape + CA under the bookmark area so the
-  slugs stay put (thin brass peels off; not like the stiff tooling board).
+- **Amir's plan (2026-11-07): thin the plate first, then cut a 0.8 mm bookmark.** `STOCK_T = 3.0`, `T = 0.8`,
+  `FACE_D = 2.2`. The DXF has a `face` layer: the bookmark's outline grown by `FACE_OFF` 2.5 mm (room for the 1 mm bit
+  and its step), pocketed 0 -> 2.2 with the 1/8" metal end mill. Then everything starts on that floor: `engrave`
+  2.2 -> 2.4, `cut` (contour inside) and `outline` (contour outside, tabs) 2.2 -> 3.0 with the **1 mm** end mill
+  (its ~3 mm flute reaches). The design stays as drawn (no roughing / rounded tips). `MARGIN` now 6 (the pocket is
+  3.5 mm in from the plate's edges: bit and collet clear of the L bracket). Time: thinning ~1-1.5 h (~11 cm3 of
+  brass), cuts ~30-40 min. Full-area painter's tape + CA under the bookmark area (slugs stay put).
 - Finish: sand the bottom burrs on 400/600 on glass, polish (Brasso / Flitz), alcohol, then Incralac / clear lacquer or
   Renaissance Wax; optional black paint in the name before polishing.
 
